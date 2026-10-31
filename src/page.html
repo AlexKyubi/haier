@@ -1,0 +1,891 @@
+<title>Haier на максималках</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Unbounded:wght@600;800&family=Manrope:wght@400;500;600;700;800&family=Roboto:wght@400;500&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: phone-first game app. Bottom tab bar (Меню / Мир 1 / Мир 2) is always one tap away.
+   Home = two worlds; World = vertical level path; Level = before/after slider + swipeable step-by-step screens of the real TV menus. */
+:root{
+  color-scheme: dark;
+  --bg:#090D18; --bg2:#0E1424; --surface:#141B30; --surface2:#1C2543; --line:#2A3553;
+  --fg:#EEF1F8; --muted:#A2ACC8; --dim:#717B9C;
+  --amber:#FFB23E; --amber-ink:#2B1B00; --amber-soft:rgba(255,178,62,.15);
+  --cyan:#5CD3FF; --cyan-ink:#02202C; --cyan-soft:rgba(92,211,255,.15);
+  --ok:#7BE3A0; --bad:#FF6B6B;
+  --gtv:#202124; --gtv2:#2D2E31; --gtv-fg:#E8EAED; --gtv-mut:#9AA0A6;
+  --f-display:'Unbounded','Arial Black',Arial,sans-serif;
+  --f-body:'Manrope','Segoe UI',Arial,sans-serif;
+  --f-tv:'Roboto','Segoe UI',Arial,sans-serif;
+  --f-mono:'JetBrains Mono',Consolas,'Courier New',monospace;
+  --nav-h:64px;
+}
+*{box-sizing:border-box}
+html,body{min-height:100%}
+body{margin:0;background:var(--bg);color:var(--fg);font-family:var(--f-body);font-size:16px;line-height:1.5;overflow-x:hidden;-webkit-tap-highlight-color:transparent;
+  padding-bottom:calc(var(--nav-h) + env(safe-area-inset-bottom,0px) + 8px)}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:60;background:var(--bg)}
+h1,h2,h3{font-family:var(--f-display);line-height:1.12;text-wrap:balance;margin:0}
+p{margin:0}
+a{color:var(--cyan)}
+button{font:inherit;color:inherit;-webkit-appearance:none;appearance:none}
+:focus-visible{outline:2px solid var(--cyan);outline-offset:3px;border-radius:10px}
+.wrap{max-width:820px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.eyebrow{font-family:var(--f-mono);font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+.btn{border:0;border-radius:14px;padding:14px 18px;min-height:48px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:8px;font-weight:800;text-decoration:none;transition:transform .12s,background .15s}
+.btn:active{transform:scale(.98)}
+.btn-ghost{background:var(--surface);border:1px solid var(--line);color:var(--fg)}
+.btn-main{background:var(--wc,var(--amber));color:var(--wink,var(--amber-ink))}
+.btn-sm{min-height:40px;padding:8px 14px;font-size:14px;border-radius:12px}
+.w1v{--wc:var(--amber);--wsoft:var(--amber-soft);--wink:var(--amber-ink)}
+.w2v{--wc:var(--cyan);--wsoft:var(--cyan-soft);--wink:var(--cyan-ink)}
+
+/* top bar */
+.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:40;background:rgba(9,13,24,.9);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-bottom:1px solid var(--line)}
+.top .wrap{display:flex;align-items:center;gap:10px;min-height:56px}
+.back{background:none;border:0;padding:8px 6px;margin-left:-6px;font-weight:800;color:var(--wc,var(--fg));cursor:pointer;display:flex;align-items:center;gap:4px;font-size:15px;white-space:nowrap}
+.top .ttl{flex:1;min-width:0;font-weight:700;font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-align:center}
+.top .sp{width:72px;text-align:right;font-family:var(--f-mono);font-size:12px;color:var(--muted)}
+.logo{font-family:var(--f-display);font-weight:800;font-size:15px}
+.logo span{color:var(--amber)}
+
+/* bottom tab bar */
+.tabs{position:fixed;left:0;right:0;bottom:0;z-index:50;background:rgba(12,17,31,.96);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-top:1px solid var(--line);
+  padding-bottom:env(safe-area-inset-bottom,0px);padding-left:env(safe-area-inset-left,0px);padding-right:env(safe-area-inset-right,0px)}
+.tabs .in{max-width:820px;margin:0 auto;display:grid;grid-template-columns:repeat(3,1fr);height:var(--nav-h)}
+.tab{background:none;border:0;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;font-size:12px;font-weight:700;color:var(--dim)}
+.tab svg{width:24px;height:24px}
+.tab.on{color:var(--fg)}
+.tab.on.t1{color:var(--amber)} .tab.on.t2{color:var(--cyan)}
+
+.screen{padding-block:20px 28px}
+.screen[hidden]{display:none}
+
+/* HOME */
+.hero h1{font-size:clamp(34px,9vw,64px);font-weight:800;letter-spacing:-.02em;margin-top:10px}
+.hero h1 em{font-style:normal;background:linear-gradient(90deg,var(--amber),var(--cyan));-webkit-background-clip:text;background-clip:text;color:transparent}
+.hero .lead{font-size:17px;color:var(--muted);margin-top:12px;max-width:46ch}
+.worlds{display:grid;gap:16px;margin-top:22px}
+@media (min-width:700px){.worlds{grid-template-columns:1fr 1fr}}
+.wcard{position:relative;text-align:left;border:1px solid var(--line);border-radius:24px;background:var(--surface);padding:0;cursor:pointer;overflow:hidden;display:flex;flex-direction:column}
+.wcard:active{transform:scale(.99)}
+.wcard .art{position:relative;aspect-ratio:16/9;max-width:100%;overflow:hidden;background:#05070D}
+.wcard .art img{width:100%;height:100%;object-fit:cover;display:block}
+.wcard .art .shade{position:absolute;inset:0;background:linear-gradient(180deg,transparent 40%,rgba(9,13,24,.85))}
+.wcard .art .wtag{position:absolute;left:14px;bottom:12px;font-family:var(--f-mono);font-size:12px;letter-spacing:.14em;color:var(--wc);font-weight:600}
+.wcard .body{padding:16px 18px 18px;display:flex;flex-direction:column;gap:6px}
+.wcard h2{font-size:24px}
+.wcard p{color:var(--muted);font-size:15px}
+.wcard .meta{display:flex;justify-content:space-between;align-items:center;margin-top:8px;gap:10px}
+.wcard .go{font-weight:800;color:var(--wc)}
+.pips{display:flex;gap:5px;flex-wrap:wrap}
+.pips i{width:10px;height:10px;border-radius:3px;background:var(--surface2)}
+.pips i.on{background:var(--wc)}
+.remote-art{position:absolute;left:50%;top:12%;width:20%;height:120%;transform:translateX(-50%) rotate(-12deg);background:linear-gradient(180deg,#2A2F3F,#161A24);border-radius:40px;box-shadow:0 20px 50px rgba(0,0,0,.6)}
+.remote-art::before{content:"";position:absolute;left:50%;top:12%;width:62%;aspect-ratio:1;transform:translateX(-50%);border-radius:50%;background:#0D1018;box-shadow:inset 0 0 0 6px #232838}
+.remote-art::after{content:"";position:absolute;left:50%;top:19%;width:22%;aspect-ratio:1;transform:translateX(-50%);border-radius:50%;background:var(--amber);box-shadow:0 0 30px var(--amber)}
+.link-art{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;gap:6%}
+.link-art .lap{width:26%;aspect-ratio:16/10;border:4px solid #3B4B66;border-radius:10px;background:#0B1422;position:relative}
+.link-art .lap::after{content:"";position:absolute;left:-12%;right:-12%;bottom:-18%;height:12%;background:#3B4B66;border-radius:0 0 8px 8px}
+.link-art .wire{width:22%;height:4px;background:linear-gradient(90deg,var(--cyan),transparent 50%,var(--cyan));background-size:200% 100%;animation:flow 1.6s linear infinite;border-radius:2px;box-shadow:0 0 18px var(--cyan)}
+.link-art .tvv{width:36%;aspect-ratio:16/9;border:5px solid #3B4B66;border-radius:8px;background:linear-gradient(135deg,#0E3C52,#071019)}
+@keyframes flow{to{background-position:-200% 0}}
+.cov{position:relative;aspect-ratio:3/4;border-radius:1.2cqw;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 1cqw 2.4cqw rgba(0,0,0,.55)}
+.cov .band{height:16%;display:flex;align-items:center;padding:0 1.2cqw;font-family:var(--f-body);font-weight:800;font-size:1.5cqw;letter-spacing:.08em}
+.cov .art{flex:1;position:relative;display:flex;align-items:flex-end;padding:1.4cqw}
+.cov .art::before{content:"";position:absolute;inset:0;background:linear-gradient(180deg,transparent 45%,rgba(0,0,0,.75))}
+.cov .art b{position:relative;font-family:var(--f-display);font-weight:800;font-size:2.5cqw;line-height:1.05;color:#fff;text-shadow:0 .3cqw .8cqw rgba(0,0,0,.6)}
+.cov.md{background:#0B0B0D}.cov.md .band{background:repeating-linear-gradient(90deg,#1B1B20 0 .5cqw,#0B0B0D .5cqw 1cqw);color:#E8E8EA;border-bottom:.4cqw solid #D32F2F}
+.cov.md .art{background:radial-gradient(80% 70% at 60% 30%,#1E5BD8,#0A1E55 70%)}
+.cov.ps{background:#F2F2F2}.cov.ps .band{background:#111;color:#fff}
+.cov.ps .art{background:radial-gradient(90% 70% at 40% 30%,#FF8A1E,#B23A00 75%);border-left:2.2cqw solid #111}
+.cov.pc{background:#111}.cov.pc .band{background:#1F7A3A;color:#fff}
+.cov.pc .art{background:linear-gradient(160deg,#F2B33D 0%,#B34A1E 55%,#3A1A2E 100%)}
+.cov.sel{outline:.5cqw solid #fff;outline-offset:.5cqw}
+.shelf{position:absolute;left:5cqw;right:5cqw;top:14cqw;display:grid;grid-template-columns:repeat(4,1fr);gap:2.4cqw}
+.wcards{display:grid;gap:10px;margin-top:4px}
+.wcards > div{display:grid;grid-template-columns:40px 1fr;gap:12px;align-items:start;background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:14px}
+.wcards .ic{width:40px;height:40px;border-radius:12px;display:grid;place-items:center;background:var(--wsoft);color:var(--wc);font-family:var(--f-display);font-weight:800}
+.wcards b{display:block;font-size:15.5px;color:var(--fg)}
+.wcards span{font-size:14px;color:var(--muted)}
+.gallery{display:grid;gap:12px;margin-top:4px}
+.gallery figure{margin:0;background:var(--surface);border:1px solid var(--line);border-radius:16px;overflow:hidden}
+.gallery img{display:block;width:100%;height:auto}
+.gallery figcaption{padding:10px 14px;font-size:14px;color:var(--muted)}
+.gallery figcaption b{color:var(--fg)}
+@media (min-width:700px){.gallery{grid-template-columns:repeat(2,1fr)}}
+.compat{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
+.compat div{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:12px}
+.compat b{display:block;font-size:15px}
+.compat span{font-size:13px;font-family:var(--f-mono)}
+.hits{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.hits span{font-size:13px;padding:5px 10px;border-radius:9px;background:var(--surface);border:1px solid var(--line);color:var(--fg)}
+.hits b{color:var(--wc);font-weight:700;margin-right:4px}
+.how{display:grid;gap:10px;margin-top:22px}
+.agree-btn{margin-top:18px;width:100%;background:transparent;border:1px dashed var(--line);color:var(--muted);border-radius:14px;min-height:48px;font-weight:700;cursor:pointer;padding:10px 14px}
+.agree-btn b{color:var(--fg)}
+.sheet{position:fixed;inset:0;z-index:80;background:rgba(3,5,10,.72);display:flex;align-items:flex-end;justify-content:center}
+.sheet[hidden]{display:none}
+.sheet .pan{background:var(--bg2);border:1px solid var(--line);border-radius:22px 22px 0 0;width:100%;max-width:720px;max-height:88vh;display:flex;flex-direction:column;padding-bottom:env(safe-area-inset-bottom,0px)}
+.sheet .sh{padding:18px 18px 10px;border-bottom:1px solid var(--line)}
+.sheet .sh h2{font-size:20px}
+.sheet .sh p{font-size:13px;color:var(--muted);margin-top:4px}
+.sheet .sb{overflow:auto;padding:14px 18px;display:flex;flex-direction:column;gap:10px;font-size:14.5px;color:var(--muted);-webkit-overflow-scrolling:touch}
+.sheet .sb h3{font-family:var(--f-body);font-size:15px;font-weight:800;color:var(--fg);margin-top:6px}
+.sheet .sf{padding:12px 18px 16px;border-top:1px solid var(--line);display:grid;grid-template-columns:1fr 1.6fr;gap:10px}
+.must{font-size:11px;font-family:var(--f-mono);color:var(--amber);font-weight:600;letter-spacing:.06em}
+.how div{display:flex;gap:14px;align-items:center;background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:14px 16px;font-size:15px;color:var(--muted)}
+.how b{color:var(--fg)}
+.how .n{flex:none;width:34px;height:34px;border-radius:10px;display:grid;place-items:center;background:var(--surface2);font-family:var(--f-display);font-weight:800;color:var(--fg);font-size:14px}
+.credits{font-size:12px;color:var(--dim);margin-top:26px;line-height:1.6}
+.credits a{color:var(--muted)}
+
+/* WORLD — level path */
+.whead h2{font-size:clamp(26px,7vw,40px);margin-top:6px}
+.whead p{color:var(--muted);margin-top:8px}
+.need{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.need span{font-size:13px;padding:6px 10px;border-radius:10px;background:var(--surface);border:1px solid var(--line);color:var(--muted)}
+.need b{color:var(--fg)}
+.path{position:relative;margin-top:22px;display:flex;flex-direction:column;gap:14px}
+.path::before{content:"";position:absolute;left:21px;top:20px;bottom:20px;width:2px;background:linear-gradient(var(--wc),var(--line))}
+.lrow{position:relative;display:grid;grid-template-columns:44px 1fr;gap:12px;align-items:center}
+.node{width:44px;height:44px;border-radius:50%;display:grid;place-items:center;background:var(--bg2);border:2px solid var(--line);font-family:var(--f-mono);font-size:11px;font-weight:600;color:var(--muted);z-index:1}
+.node.done{background:var(--wc);border-color:var(--wc);color:var(--wink)}
+.node.boss{border-color:transparent;background:linear-gradient(135deg,var(--amber),var(--cyan));color:var(--amber-ink)}
+.lcard{display:grid;grid-template-columns:118px 1fr;gap:12px;align-items:center;text-align:left;background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:8px 12px 8px 8px;cursor:pointer;min-width:0}
+.lcard:active{transform:scale(.99)}
+.lcard .th{border-radius:10px;overflow:hidden;aspect-ratio:16/9}
+.lcard .th img{width:100%;height:100%;object-fit:cover;display:block}
+.lcard .tx{min-width:0;display:flex;flex-direction:column;gap:2px}
+.lcard h3{font-family:var(--f-body);font-weight:800;font-size:16px;line-height:1.25}
+.lcard .hk{font-size:13.5px;color:var(--muted);line-height:1.35}
+.lcard .ok{font-size:11px;font-family:var(--f-mono);color:var(--ok);font-weight:600}
+.lcard.boss{border-color:transparent;background:linear-gradient(var(--surface),var(--surface)) padding-box,linear-gradient(120deg,var(--amber),var(--cyan)) border-box}
+@media (min-width:600px){.lcard{grid-template-columns:180px 1fr}.lcard h3{font-size:18px}}
+
+/* LEVEL */
+.lhead .code{display:inline-block;font-family:var(--f-mono);font-size:12px;letter-spacing:.12em;color:var(--wink);background:var(--wc);padding:4px 9px;border-radius:8px;font-weight:600}
+.lhead h2{font-size:clamp(26px,7.4vw,40px);margin-top:10px}
+.lhead .hook{font-size:17px;color:var(--muted);margin-top:6px}
+.ba{margin-top:18px}
+.ba-frame{position:relative;border-radius:16px;overflow:hidden;border:6px solid #1C2440;background:#05070D}
+.ba-lab{position:absolute;top:8px;z-index:5;font-family:var(--f-display);font-weight:800;font-size:11px;letter-spacing:.06em;padding:5px 9px;border-radius:8px;pointer-events:none}
+.ba-lab.b{left:8px;background:rgba(0,0,0,.7);color:#fff}
+.ba-lab.a{right:8px;background:var(--wc);color:var(--wink)}
+img-comparison-slider{display:block;width:100%;--divider-width:3px;--divider-color:#fff;--default-handle-color:#fff;--default-handle-width:48px;outline:none}
+img-comparison-slider:not(:defined) [slot="second"]{display:none}
+img-comparison-slider [slot]{display:block;width:100%}
+.ba-sw{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
+.ba-sw button{border:1px solid var(--line);background:var(--surface);border-radius:12px;min-height:46px;padding:8px 10px;cursor:pointer;text-align:left;display:flex;flex-direction:column;gap:1px}
+.ba-sw button small{font-family:var(--f-mono);font-size:10.5px;letter-spacing:.12em;color:var(--dim)}
+.ba-sw button b{font-size:14.5px;line-height:1.25}
+.ba-sw button.on{border-color:var(--wc)}
+.ba-sw button.a small{color:var(--wc)}
+.stat{display:grid;grid-template-columns:1fr auto 1fr;gap:10px;align-items:stretch}
+.stat > div{border-radius:16px;padding:16px;display:flex;flex-direction:column;gap:4px;min-width:0}
+.stat .b{background:var(--bg2);border:1px dashed var(--line)}
+.stat .a{background:var(--wsoft);border:1px solid var(--wc)}
+.stat small{font-family:var(--f-mono);font-size:10.5px;letter-spacing:.12em;color:var(--dim)}
+.stat .a small{color:var(--wc)}
+.stat big{font-family:var(--f-display);font-weight:800;font-size:clamp(30px,10vw,52px);line-height:1}
+.stat .b big{color:var(--dim)}
+.stat span{font-size:14px;color:var(--muted)}
+.stat .arr{align-self:center;color:var(--wc);font-family:var(--f-display);font-size:22px}
+
+.sec{display:flex;justify-content:space-between;align-items:baseline;margin-top:28px;margin-bottom:10px;gap:10px}
+.sec h3{font-size:18px}
+.sec span{font-family:var(--f-mono);font-size:12px;color:var(--muted)}
+.swiper{position:relative;overflow:hidden;border-radius:20px}
+.swiper-wrapper{display:flex;position:relative;z-index:1;box-sizing:content-box;transition-property:transform,height}
+.swiper-slide{flex-shrink:0;width:100%;position:relative;transition-property:transform}
+.swiper-autoheight .swiper-wrapper{align-items:flex-start}
+.swiper:not(.swiper-initialized) .swiper-wrapper{flex-direction:column;gap:12px}
+.step{background:var(--surface);border:1px solid var(--line);border-radius:20px;padding:12px;display:flex;flex-direction:column;gap:12px}
+.step .cap{display:grid;grid-template-columns:34px 1fr;gap:12px;align-items:start;padding:2px 4px 4px}
+.step .num{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;background:var(--wc);color:var(--wink);font-family:var(--f-display);font-weight:800;font-size:14px}
+.step .cap p{font-size:17px;line-height:1.4;font-weight:600}
+.step .cap p b{color:var(--wc)}
+.step .cap .note{font-size:14px;color:var(--muted);font-weight:500;margin-top:4px}
+.frame-lab{font-family:var(--f-mono);font-size:10.5px;letter-spacing:.12em;color:var(--dim);text-transform:uppercase;padding:0 4px}
+.stepnav{display:grid;grid-template-columns:1fr 1.4fr;gap:10px;margin-top:12px}
+.dots{display:flex;justify-content:center;gap:6px;margin-top:12px}
+.dots i{width:8px;height:8px;border-radius:4px;background:var(--surface2);transition:width .2s,background .2s}
+.dots i.on{width:22px;background:var(--wc)}
+.finish{display:flex;flex-direction:column;gap:12px;align-items:stretch;text-align:center;padding:18px 8px}
+.finish big{font-family:var(--f-display);font-size:26px;font-weight:800}
+.finish p{color:var(--muted)}
+.prompt{background:#070A13;border:1px solid var(--line);border-left:3px solid var(--cyan);border-radius:14px;padding:12px 14px;position:relative}
+.prompt pre{margin:0;white-space:pre-wrap;word-break:break-word;font-family:var(--f-mono);font-size:13px;line-height:1.6;color:#D9E6F5;max-height:220px;overflow:auto}
+.prompt.open pre{max-height:none}
+.prompt .ph{color:var(--amber);background:var(--amber-soft);border-radius:4px;padding:0 3px}
+.prompt-actions{display:grid;grid-template-columns:1.4fr 1fr;gap:8px;margin-top:10px}
+details.tips{margin-top:18px;background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:14px 16px}
+details.tips summary{cursor:pointer;font-weight:800;list-style:none;display:flex;justify-content:space-between;align-items:center;min-height:28px}
+details.tips summary::-webkit-details-marker{display:none}
+details.tips summary::after{content:"+";font-family:var(--f-mono);color:var(--wc);font-size:18px}
+details.tips[open] summary::after{content:"–"}
+details.tips ul{margin:10px 0 0;padding-left:20px;color:var(--muted);display:flex;flex-direction:column;gap:8px;font-size:15px}
+.status{display:flex;gap:8px;align-items:center;font-size:13px;color:var(--muted);margin-top:14px}
+.status i{width:8px;height:8px;border-radius:50%;background:var(--amber);flex:none}
+.status.haier i{background:var(--ok)} .status.exp i{background:var(--bad)}
+.tbl{overflow-x:auto;border:1px solid var(--line);border-radius:14px;margin-top:4px;-webkit-overflow-scrolling:touch}
+table{border-collapse:collapse;width:100%;min-width:440px;font-size:14px}
+th,td{text-align:left;padding:9px 10px;border-bottom:1px solid var(--line)}
+th{font-family:var(--f-mono);font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);background:var(--bg2);font-weight:600}
+tr:last-child td{border-bottom:0}
+.g{font-family:var(--f-mono);font-size:12px;white-space:nowrap;font-weight:600}
+.g4{color:var(--ok)}.g3{color:var(--cyan)}.g2{color:var(--amber)}.g1{color:var(--bad)}.g0{color:var(--dim)}
+.note{font-size:12.5px;color:var(--dim);margin-top:8px}
+.nextlvl{margin-top:22px;display:grid;gap:10px}
+
+/* ── TV FRAGMENT MOCKS (px, sized for phones) ── */
+.tvf{border-radius:14px;overflow:hidden;border:5px solid #1C2440;background:#000;font-family:var(--f-tv);color:var(--gtv-fg);position:relative}
+.gp{background:var(--gtv);padding:18px 14px 14px;min-height:330px;display:flex;flex-direction:column;gap:4px;position:relative}
+.gp .gt{font-size:22px;font-weight:400;padding:0 8px 12px;color:#fff}
+.gp .gc{font-size:12px;color:var(--gtv-mut);padding:0 8px;margin-top:-8px;margin-bottom:8px}
+.gi{display:grid;grid-template-columns:30px 1fr auto;gap:12px;align-items:center;padding:10px 10px;border-radius:12px;min-height:50px;position:relative}
+.gi .ic{width:30px;height:30px;border-radius:50%;display:grid;place-items:center;background:var(--gtv2);color:var(--gtv-fg)}
+.gi .ic svg{width:18px;height:18px}
+.gi .t{font-size:15px;line-height:1.25}
+.gi .s{font-size:12.5px;color:var(--gtv-mut);line-height:1.3}
+.gi.f{background:var(--gtv-fg);color:#202124}
+.gi.f .s{color:#5F6368}
+.gi.f .ic{background:#DADCE0;color:#202124}
+.gi.dim{opacity:.45}
+.tg{width:34px;height:20px;border-radius:10px;background:#5F6368;position:relative;flex:none}
+.tg::after{content:"";position:absolute;top:2px;left:2px;width:16px;height:16px;border-radius:50%;background:#E8EAED;transition:left .2s}
+.tg.on{background:#8AB4F8}
+.tg.on::after{left:16px;background:#fff}
+.gi.f .tg.on{background:#1A73E8}
+.press{position:absolute;right:8px;top:50%;transform:translateY(-50%);display:flex;align-items:center;gap:6px;pointer-events:none}
+.press b{font-family:var(--f-body);font-size:11px;font-weight:800;background:var(--wc);color:var(--wink);padding:4px 8px;border-radius:8px;white-space:nowrap;box-shadow:0 4px 14px rgba(0,0,0,.5)}
+.press i{width:14px;height:14px;border-radius:50%;background:var(--wc);box-shadow:0 0 0 0 var(--wc);animation:pulse 1.4s infinite}
+@keyframes pulse{0%{box-shadow:0 0 0 0 rgba(255,255,255,.55)}100%{box-shadow:0 0 0 12px rgba(255,255,255,0)}}
+.toast{position:absolute;left:50%;bottom:16px;transform:translateX(-50%);background:#3C4043;color:#E8EAED;font-size:13.5px;padding:10px 16px;border-radius:22px;white-space:nowrap;box-shadow:0 6px 18px rgba(0,0,0,.5)}
+.dlg{background:rgba(0,0,0,.55);padding:26px 16px;min-height:330px;display:flex;align-items:center;justify-content:center}
+.dlg .box{background:var(--gtv);border-radius:16px;padding:18px 14px 12px;width:100%;max-width:360px}
+.dlg .box .h{font-size:18px;padding:0 6px 10px}
+.dlg .box .p{font-size:13.5px;color:var(--gtv-mut);padding:0 6px 12px;line-height:1.45}
+.rad{display:grid;grid-template-columns:22px 1fr;gap:12px;align-items:center;padding:10px;border-radius:10px;font-size:15px;position:relative}
+.rad i{width:20px;height:20px;border-radius:50%;border:2px solid var(--gtv-mut)}
+.rad.sel i{border-color:#8AB4F8;box-shadow:inset 0 0 0 4px var(--gtv);background:#8AB4F8}
+.rad.f{background:var(--gtv-fg);color:#202124}
+.rad.f.sel i{box-shadow:inset 0 0 0 4px var(--gtv-fg);border-color:#1A73E8;background:#1A73E8}
+.chk{display:flex;gap:10px;align-items:center;font-size:14px;padding:8px 6px}
+.chk i{width:18px;height:18px;border-radius:3px;background:#8AB4F8;display:grid;place-items:center}
+.chk i::after{content:"";width:5px;height:9px;border:solid #202124;border-width:0 2px 2px 0;transform:translateY(-1px) rotate(45deg)}
+.dbtn{display:flex;justify-content:flex-end;gap:8px;padding-top:8px}
+.dbtn span{font-size:14px;font-weight:500;padding:8px 14px;border-radius:18px;color:#8AB4F8;position:relative}
+.dbtn span.f{background:var(--gtv-fg);color:#1A73E8}
+.code6{font-family:var(--f-tv);font-size:40px;letter-spacing:.12em;text-align:center;padding:10px 0;color:#fff}
+.store{background:linear-gradient(180deg,#1B1C20,#121316);padding:20px 18px;min-height:250px;display:grid;grid-template-columns:88px 1fr;gap:16px;align-items:start}
+.store .ai{width:88px;height:88px;border-radius:22px;display:grid;place-items:center;font-family:var(--f-display);font-weight:800;font-size:28px;color:#fff}
+.store .nm{font-size:20px;line-height:1.2}
+.store .dv{font-size:13px;color:#81C995;margin-top:4px}
+.store .rt{font-size:12.5px;color:var(--gtv-mut);margin-top:6px}
+.store .ins{grid-column:1/-1;display:flex;gap:10px;position:relative}
+.store .ins span{font-size:15px;font-weight:500;padding:10px 22px;border-radius:22px;background:var(--gtv2)}
+.store .ins span.f{background:var(--gtv-fg);color:#202124}
+.app{padding:16px 14px;min-height:300px;display:flex;flex-direction:column;gap:6px;font-family:var(--f-tv)}
+.app .ah{display:flex;align-items:center;gap:10px;padding:0 6px 10px;font-size:17px}
+.app .ah i{width:28px;height:28px;border-radius:8px;display:grid;place-items:center;font-style:normal;font-weight:800;font-size:13px;color:#fff}
+.ar{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:12px;border-radius:10px;font-size:14.5px;position:relative;background:rgba(255,255,255,.04)}
+.ar small{display:block;color:var(--gtv-mut);font-size:12px}
+.ar.f{background:var(--gtv-fg);color:#202124}
+.ar.f small{color:#5F6368}
+.term{background:#0B0F17;font-family:var(--f-mono);font-size:12.5px;line-height:1.55;color:#C9D4E6;min-height:250px}
+.term .th{display:flex;align-items:center;gap:6px;padding:9px 12px;background:#131A26;font-size:11.5px;color:var(--muted);font-family:var(--f-body);font-weight:700}
+.term .th i{width:9px;height:9px;border-radius:50%;background:#3A4560}
+.term .tb{padding:12px 12px 14px;display:flex;flex-direction:column;gap:8px}
+.term .u{align-self:flex-end;max-width:88%;background:#1F2A44;color:#EEF1F8;border-radius:12px 12px 2px 12px;padding:8px 10px;font-family:var(--f-body);font-size:13.5px}
+.term .a{font-family:var(--f-body);font-size:13.5px;color:#EEF1F8}
+.term .c{color:#8FD3FF}
+.term .c::before{content:"$ ";color:var(--dim)}
+.term .o{color:#9AA4BE;white-space:pre-wrap}
+.term .k{color:var(--ok)}
+.term .q{border:1px solid #2A3553;border-radius:10px;padding:8px 10px;font-family:var(--f-body);font-size:13.5px;color:#EEF1F8;background:#111829}
+.term .q b{color:var(--amber)}
+
+/* ── WIDE TV MOCKS (cqw) for before/after ── */
+.scr{position:relative;aspect-ratio:16/9;width:100%;overflow:hidden;container-type:inline-size;background:#05070D;color:#fff;font-family:var(--f-tv);line-height:1.2}
+.scr img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.fill{position:absolute;inset:0}
+.wall{background:radial-gradient(120% 90% at 20% 0%,#2B3F7A 0%,#101733 45%,#070A16 100%)}
+.wall2{background:linear-gradient(160deg,#1B1230 0%,#0B0F1F 60%,#06080F 100%)}
+.gtop{position:absolute;left:4cqw;top:3.4cqw;display:flex;gap:3cqw;font-size:2.2cqw;color:#cfd6ea;font-weight:500}
+.gtop span:first-child{color:#202124;background:#E8EAED;padding:.5cqw 1.6cqw;border-radius:2cqw;margin-top:-.5cqw}
+.banner{position:absolute;left:4cqw;right:4cqw;top:9.5cqw;height:23cqw;border-radius:1.8cqw;background:linear-gradient(110deg,#C0392B 0%,#8E44AD 55%,#2C3E8F 100%);padding:3cqw;display:flex;flex-direction:column;justify-content:flex-end;gap:.8cqw}
+.banner b{font-size:4.2cqw;font-family:var(--f-display)}
+.banner small{font-size:1.9cqw;background:rgba(0,0,0,.45);padding:.4cqw 1cqw;border-radius:.6cqw;align-self:flex-start}
+.adtag{position:absolute;font-size:1.7cqw;font-weight:800;background:#FFD43B;color:#2B1B00;padding:.35cqw .9cqw;border-radius:.5cqw;font-family:var(--f-body)}
+.prow{position:absolute;left:4cqw;right:4cqw;display:flex;gap:1.6cqw}
+.poster{flex:1;aspect-ratio:2/3;border-radius:1cqw;position:relative;background:linear-gradient(180deg,hsl(var(--h) 55% 45%),hsl(var(--h) 60% 18%))}
+.poster i{position:absolute;left:.6cqw;bottom:.6cqw;font-style:normal;font-size:1.5cqw;background:rgba(0,0,0,.65);padding:.2cqw .6cqw;border-radius:.4cqw}
+.trow{position:absolute;left:5cqw;right:5cqw;display:grid;gap:1.8cqw}
+.tile{aspect-ratio:16/9;border-radius:1.2cqw;background:linear-gradient(135deg,hsl(var(--h) 70% 52%),hsl(var(--h) 70% 30%));display:flex;align-items:flex-end;padding:.8cqw 1cqw;font-size:2cqw;font-weight:500;box-shadow:0 .6cqw 1.6cqw rgba(0,0,0,.4)}
+.tile.sel{outline:.45cqw solid #fff;outline-offset:.4cqw}
+.rowlab{position:absolute;left:5cqw;font-size:2.1cqw;font-weight:500;color:#dfe5f5}
+.clock{position:absolute;right:4cqw;top:3.2cqw;font-size:2.3cqw;color:#dfe5f5}
+.mini{position:absolute;inset:6cqw 5cqw;display:grid;grid-template-columns:repeat(8,1fr);gap:1cqw}
+.mini span{aspect-ratio:1;border-radius:.8cqw;background:#2A3146;font-size:1.3cqw;display:flex;align-items:flex-end;justify-content:center;padding-bottom:.4cqw;color:#9aa3bd}
+.center{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1.6cqw;text-align:center}
+.big{font-family:var(--f-display);font-weight:800;font-size:10cqw;line-height:1}
+.sub{font-size:2.6cqw;color:#c9d0e4}
+.noise{background:repeating-radial-gradient(circle at 17% 32%,#3a3f4f 0 .25cqw,#14161d .25cqw .6cqw),repeating-linear-gradient(0deg,#262a36 0 .3cqw,#0c0e14 .3cqw .7cqw);filter:contrast(1.4)}
+.chgrid{position:absolute;left:4cqw;right:4cqw;top:9cqw;display:grid;grid-template-columns:repeat(3,1fr);gap:1.4cqw}
+.ch{display:flex;gap:1.2cqw;align-items:center;background:rgba(255,255,255,.08);border-radius:1cqw;padding:1.3cqw 1.4cqw;font-size:2.2cqw;font-weight:500}
+.ch i{font-style:normal;font-family:var(--f-mono);font-size:1.7cqw;color:var(--cyan);min-width:3cqw}
+.ch.live::after{content:"LIVE";margin-left:auto;font-size:1.3cqw;color:#04210F;background:var(--ok);padding:.2cqw .6cqw;border-radius:.4cqw;font-weight:800}
+.vid{background:linear-gradient(135deg,#1F3B5A,#0B1625)}
+.play{position:absolute;left:50%;top:50%;width:10cqw;height:10cqw;transform:translate(-50%,-50%);border-radius:50%;background:rgba(255,255,255,.18);display:grid;place-items:center}
+.play::after{content:"";width:0;height:0;border-left:3.6cqw solid #fff;border-top:2.2cqw solid transparent;border-bottom:2.2cqw solid transparent;margin-left:1cqw}
+.ytbar{position:absolute;left:4cqw;right:4cqw;bottom:4cqw;height:.8cqw;border-radius:.4cqw;background:rgba(255,255,255,.25)}
+.ytbar i{position:absolute;left:0;top:0;bottom:0;width:30%;background:#FF3B3B;border-radius:.4cqw}
+.ytbar b{position:absolute;top:-.3cqw;width:.9cqw;height:1.4cqw;background:#FFD43B;border-radius:.2cqw}
+.pill{position:absolute;font-size:2.2cqw;font-weight:800;padding:.8cqw 1.6cqw;border-radius:1cqw;font-family:var(--f-body)}
+.sticker{position:absolute;left:44%;top:50%;transform:translate(-50%,-50%) rotate(-24deg);font-family:var(--f-display);font-weight:800;font-size:4.2cqw;color:#fff;background:#2BB673;padding:1.4cqw 2.6cqw;border-radius:2cqw;box-shadow:0 1.4cqw 3cqw rgba(0,0,0,.45)}
+.osd{position:absolute;left:4cqw;bottom:4cqw;font-size:2.6cqw;font-weight:500;text-shadow:0 .2cqw .8cqw rgba(0,0,0,.8)}
+.osd small{display:block;font-size:1.8cqw;opacity:.9}
+.osdc{position:absolute;right:4cqw;top:3.6cqw;font-size:3.4cqw;text-shadow:0 .2cqw .8cqw rgba(0,0,0,.8)}
+.morning{background:radial-gradient(90% 90% at 80% 10%,#2E4A7A,#0C1426 70%)}
+.desk{background:linear-gradient(160deg,#1A2B44,#0B1020)}
+.panelbar{position:absolute;left:0;right:0;top:0;height:3.8cqw;background:#0A0F1A;display:flex;align-items:center;gap:2cqw;padding:0 2cqw;font-size:1.7cqw;color:#c9d0e4}
+.win{position:absolute;border-radius:1cqw;background:#E9EDF5;color:#1A2236;overflow:hidden;box-shadow:0 1.4cqw 3cqw rgba(0,0,0,.5)}
+.win .wt{height:3.2cqw;background:#C9D1E0;font-size:1.6cqw;display:flex;align-items:center;padding:0 1.2cqw;font-weight:500}
+.win .wb{padding:1.4cqw;display:flex;flex-direction:column;gap:.9cqw}
+.win .ln{height:1.1cqw;border-radius:.5cqw;background:#B7C0D3}
+.dock{position:absolute;left:50%;bottom:2cqw;transform:translateX(-50%);display:flex;gap:1.2cqw;padding:1cqw 1.6cqw;border-radius:1.6cqw;background:rgba(10,15,26,.8)}
+.dock i{width:4.4cqw;height:4.4cqw;border-radius:1cqw;background:linear-gradient(135deg,hsl(var(--h) 70% 55%),hsl(var(--h) 70% 32%))}
+.dev{position:absolute;top:50%;transform:translateY(-50%);border:.7cqw solid #3B4B66;background:#0B1422;border-radius:1cqw}
+.link{position:absolute;left:36cqw;right:36cqw;top:50%;height:.7cqw;transform:translateY(-50%)}
+.search{position:absolute;left:12cqw;right:12cqw;top:12cqw;height:7cqw;border-radius:3.5cqw;background:#1E2538;display:flex;align-items:center;padding:0 3cqw;font-size:2.6cqw;color:#c9d0e4}
+.folder{width:22cqw;height:15cqw;border-radius:1.4cqw;background:linear-gradient(180deg,#FFC861,#E89B1E);position:relative}
+.folder::before{content:"";position:absolute;left:0;top:-2.4cqw;width:9cqw;height:3.4cqw;border-radius:1.2cqw 1.2cqw 0 0;background:#FFC861}
+.memb{width:60cqw;height:4cqw;border-radius:2cqw;background:#1E2538;overflow:hidden}
+.memb i{display:block;height:100%}
+
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+
+<header class="top" id="top"><div class="wrap" id="topIn"></div></header>
+
+<main>
+  <section class="screen" id="scr-home">
+    <div class="wrap">
+      <div class="hero">
+        <p class="eyebrow">Игра‑инструкция · Haier M4, M7 и старше · Google TV</p>
+        <h1>Прокачай свой <em>Haier</em></h1>
+        <p class="lead">Два мира скрытых возможностей. В первом хватит пульта, во втором телевизор настраивает ИИ‑агент.</p>
+      </div>
+      <div class="worlds">
+        <button class="wcard w1v" type="button" data-go="w1">
+          <div class="art" style="background:radial-gradient(120% 120% at 30% 20%,#3A2A10,#120E08 70%)"><div class="remote-art"></div><div class="shade"></div><span class="wtag">МИР 1 · БЕЗ КОМПЬЮТЕРА</span></div>
+          <div class="body"><h2>Пульт и диван</h2><p>Турбо‑меню, свой главный экран, свои кнопки, 4K‑заставки.</p>
+            <div class="meta"><div class="pips" id="pips1"></div><span class="go">Играть →</span></div></div>
+        </button>
+        <button class="wcard w2v" type="button" data-go="w2">
+          <div class="art" style="background:radial-gradient(120% 120% at 70% 20%,#0F3446,#070F16 70%)"><div class="link-art"><div class="lap"></div><div class="wire"></div><div class="tvv"></div></div><div class="shade"></div><span class="wtag">МИР 2 · ИИ‑АГЕНТ</span></div>
+          <div class="body"><h2>ИИ берёт управление</h2><p>Агент сам чистит мусор, режет рекламу, ставит IPTV и эмуляторы. В конце — босс.</p>
+            <div class="meta"><div class="pips" id="pips2"></div><span class="go">Играть →</span></div></div>
+        </button>
+      </div>
+      <button class="agree-btn" type="button" id="agreeOpen"><b>Пользовательское соглашение</b> — прочитайте перед началом</button>
+    </div>
+  </section>
+
+  <section class="screen" id="scr-world" hidden><div class="wrap" id="worldIn"></div></section>
+  <section class="screen" id="scr-level" hidden><div class="wrap" id="levelIn"></div></section>
+</main>
+
+<div class="sheet" id="agree" hidden role="dialog" aria-modal="true" aria-labelledby="agreeT"><div class="pan">
+  <div class="sh"><h2 id="agreeT">Пользовательское соглашение</h2><p>Прочитайте до конца. Продолжая, вы принимаете эти условия.</p></div>
+  <div class="sb">
+    <h3>1. Что это за материал</h3>
+    <p>«Haier на максималках» — неофициальная обучающая инструкция. Она не связана с компаниями Haier, Google и разработчиками упомянутых приложений и не является официальной документацией. Экраны меню показаны как реконструкции; на вашей модели и прошивке пункты могут называться и располагаться иначе.</p>
+    <h3>2. Вы действуете на свой риск</h3>
+    <p>Все настройки, установка приложений, включение режима разработчика, подключение по ADB и работа с ИИ‑агентом выполняются вами самостоятельно и под вашу ответственность. Автор не отвечает за сбои, ошибки настройки, потерю данных, неработоспособность телевизора или приложений, блокировку аккаунтов, расходы на услуги и любой другой прямой или косвенный ущерб.</p>
+    <h3>3. Гарантия</h3>
+    <p>Изменение системных настроек, сторонние приложения и служебные инструменты могут повлиять на гарантийное обслуживание. Уточните условия гарантии у продавца или производителя до начала.</p>
+    <h3>4. ИИ‑агенты ошибаются</h3>
+    <p>ИИ‑агент может неверно понять задачу или предложить ошибочную команду. Вы читаете его объяснения и подтверждаете каждое изменение сами. Ответственность за выполненные команды лежит на вас.</p>
+    <h3>5. Резервная копия обязательна</h3>
+    <p>Перед любыми изменениями через ИИ‑агента сделайте резервную копию (уровень 2.1). Без неё вернуть телевизор в прежнее состояние может быть невозможно, вплоть до сброса к заводским настройкам.</p>
+    <h3>6. Сторонние приложения и контент</h3>
+    <p>Приложения устанавливаются по вашему выбору, только из Play Маркета или с официальных страниц разработчиков. Соблюдайте законы и правила сервисов: игры — только копии ваших дисков и картриджей или бесплатные игры, телеканалы — только из легальных источников. Неофициальные клиенты сервисов (например, SmartTube) вы ставите по собственному решению.</p>
+    <h3>7. Безопасность</h3>
+    <p>Пока на телевизоре включена отладка, к нему может запросить доступ любой компьютер в вашей сети. Выключайте отладку после работы и не подтверждайте запросы с незнакомых устройств.</p>
+    <h3>8. Принятие условий</h3>
+    <p>Нажимая «Принимаю» или продолжая пользоваться инструкцией, вы подтверждаете, что прочитали это соглашение, понимаете риски и принимаете на себя полную ответственность за ошибки и результат настройки системы.</p>
+  </div>
+  <div class="sf"><button class="btn btn-ghost" type="button" id="agreeNo">Закрыть</button><button class="btn btn-main" type="button" id="agreeYes" style="--wc:var(--amber);--wink:var(--amber-ink)">Принимаю</button></div>
+</div></div>
+
+<nav class="tabs" aria-label="Навигация"><div class="in">
+  <button class="tab" type="button" data-go="home" id="tab-home"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-7 9 7"/><path d="M5 10v10h14V10"/></svg>Меню</button>
+  <button class="tab t1" type="button" data-go="w1" id="tab-w1"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="8" y="2" width="8" height="20" rx="4"/><circle cx="12" cy="8" r="2"/></svg>Мир 1</button>
+  <button class="tab t2" type="button" data-go="w2" id="tab-w2"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="12" rx="2"/><path d="M7 20h10M9 9l2 2-2 2M13 13h3"/></svg>Мир 2</button>
+</div></nav>
+
+<script src="https://cdn.jsdelivr.net/npm/swiper@11.1.4/swiper-bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/img-comparison-slider@8.0.6/dist/index.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/canvas-confetti/1.9.3/confetti.browser.min.js"></script>
+<script>
+(function(){
+"use strict";
+const IMG={remote:'%%IMG_remote%%',retro:'%%IMG_retro%%',iceland:'%%IMG_iceland%%',smarttube:'%%IMG_smarttube%%',raPlay:'%%IMG_raPlay%%',raTabs:'%%IMG_raTabs%%',ppsspp:'%%IMG_ppsspp%%',dosbox:'%%IMG_dosbox%%',junk:'%%IMG_junk%%',sonic:'%%IMG_sonic%%',crash:'%%IMG_crash%%',gta:'%%IMG_gta%%',mk:'%%IMG_mk%%'};
+const CREDIT={
+  remote:'пульт — Paowee, CC BY 4.0',
+  iceland:'Исландия — Daniel Oberhaus, CC BY 4.0',
+  smarttube:'SmartTube — yuliskov, MIT',
+  retro:'RetroArch — Libretro, GPL',
+  raPlay:'RetroArch Ozone — Takuyakoz, CC BY-SA 4.0',
+  raTabs:'RetroArch Ozone — Takuyakoz, CC BY-SA 4.0',
+  junk:'Junk Runner 64 — James Lambert, MIT',
+  ppsspp:'PPSSPP — Henrik Rydgård и др., GPL',
+  dosbox:'DOSBox — GPL'
+};
+const esc=s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+
+/* ── icons for the Google TV settings mock ── */
+const SV=p=>`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${p}</svg>`;
+const ICON={
+  user:SV('<circle cx="12" cy="8" r="4"/><path d="M4 21c1-4 4-6 8-6s7 2 8 6"/>'),
+  input:SV('<rect x="3" y="5" width="18" height="12" rx="2"/><path d="M10 9l3 2-3 2"/>'),
+  display:SV('<rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8"/>'),
+  wifi:SV('<path d="M2 9a15 15 0 0 1 20 0M5 12.5a10 10 0 0 1 14 0M8.5 16a5 5 0 0 1 7 0"/><circle cx="12" cy="19" r="1"/>'),
+  account:SV('<circle cx="12" cy="12" r="9"/><circle cx="12" cy="10" r="3"/><path d="M6.5 18.5c1.5-2 3.3-3 5.5-3s4 1 5.5 3"/>'),
+  lock:SV('<rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/>'),
+  apps:SV('<rect x="4" y="4" width="6" height="6" rx="1"/><rect x="14" y="4" width="6" height="6" rx="1"/><rect x="4" y="14" width="6" height="6" rx="1"/><rect x="14" y="14" width="6" height="6" rx="1"/>'),
+  tv:SV('<rect x="3" y="5" width="18" height="12" rx="2"/><path d="M12 17v3M8 21h8"/>'),
+  access:SV('<circle cx="12" cy="4.5" r="1.5"/><path d="M5 8l7 1.5L19 8M12 9.5V15l-3 6M12 15l3 6"/>'),
+  remote:SV('<rect x="8" y="2" width="8" height="20" rx="4"/><circle cx="12" cy="8" r="2"/>'),
+  help:SV('<circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.6.3-1 .9-1 1.7"/><circle cx="12" cy="17" r=".6"/>'),
+  info:SV('<circle cx="12" cy="12" r="9"/><path d="M12 11v6"/><circle cx="12" cy="7.5" r=".6"/>'),
+  clock:SV('<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>'),
+  globe:SV('<circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c3 3 3 15 0 18M12 3c-3 3-3 15 0 18"/>'),
+  storage:SV('<rect x="4" y="4" width="16" height="6" rx="1"/><rect x="4" y="14" width="16" height="6" rx="1"/>'),
+  image:SV('<rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 16l5-5 4 4 3-3 6 6"/>'),
+  power:SV('<path d="M12 3v8M6.5 7a7 7 0 1 0 11 0"/>'),
+  code:SV('<path d="M8 8l-4 4 4 4M16 8l4 4-4 4M14 5l-4 14"/>'),
+  bug:SV('<rect x="8" y="7" width="8" height="12" rx="4"/><path d="M12 7V5M4 13h4M16 13h4M5 8l3 2M19 8l-3 2M5 19l3-2M19 19l-3-2"/>'),
+  anim:SV('<path d="M4 12h3M17 12h3"/><rect x="8" y="7" width="8" height="10" rx="2"/>'),
+  plus:SV('<path d="M12 5v14M5 12h14"/>'),
+  dot:SV('<circle cx="12" cy="12" r="3"/>')
+};
+
+/* ── builders: narrow TV fragments for steps ── */
+// item string: "icon|Title|sub|toggle" ; toggle: on/off
+function gpanel(o){
+  const all=o.items.map(s=>s.split('|'));
+  let start=0; const max=o.max||7;
+  if(all.length>max){ start=Math.min(Math.max(0,o.f-Math.floor(max/2)),all.length-max); }
+  const vis=all.slice(start,start+max);
+  const rows=vis.map((it,k)=>{
+    const i=start+k, f=i===o.f;
+    const tg=it[3]?`<span class="tg ${it[3]==='on'?'on':''}"></span>`:'';
+    const ic=it[0]?`<span class="ic">${ICON[it[0]]||ICON.dot}</span>`:'<span></span>';
+    return `<div class="gi ${f?'f':''} ${o.dim&&!f?'dim':''}" ${it[0]?'':'style="grid-template-columns:0 1fr auto;gap:0 12px"'}>${ic}<div><div class="t">${esc(it[1])}</div>${it[2]?`<div class="s">${esc(it[2])}</div>`:''}</div>${tg}${f&&o.press!==false?`<span class="press"><b>${esc(o.press||'OK')}</b><i></i></span>`:''}</div>`;
+  }).join('');
+  return `<div class="tvf"><div class="gp"><div class="gt">${esc(o.title)}</div>${o.crumb?`<div class="gc">${esc(o.crumb)}</div>`:''}${rows}${o.toast?`<div class="toast">${esc(o.toast)}</div>`:''}</div></div>`;
+}
+function gdialog(o){
+  const opts=(o.opts||[]).map((t,i)=>`<div class="rad ${i===o.sel?'sel':''} ${i===o.f?'f':''}"><i></i><span>${esc(t)}</span>${i===o.f?`<span class="press"><b>OK</b><i></i></span>`:''}</div>`).join('');
+  return `<div class="tvf"><div class="dlg"><div class="box"><div class="h">${esc(o.title)}</div>${o.text?`<div class="p">${o.text}</div>`:''}${o.code?`<div class="code6">${o.code}</div>`:''}${opts}${o.check?`<div class="chk"><i></i>${esc(o.check)}</div>`:''}${o.btns?`<div class="dbtn">${o.btns.map((b,i)=>`<span class="${i===o.bf?'f':''}">${esc(b)}${i===o.bf?`<span class="press" style="right:-4px;top:-14px;transform:none"><b>OK</b></span>`:''}</span>`).join('')}</div>`:''}</div></div></div>`;
+}
+function gstore(o){
+  return `<div class="tvf"><div class="store"><div class="ai" style="background:${o.color}">${esc(o.letter)}</div><div><div class="nm">${esc(o.name)}</div><div class="dv">${esc(o.dev)}</div><div class="rt">Google Play · бесплатно</div></div>
+    <div class="ins"><span class="f">Установить<span class="press" style="right:-60px"><b>OK</b><i></i></span></span><span>Подробнее</span></div></div></div>`;
+}
+function gapp(o){
+  const rows=o.rows.map((r,i)=>{ const [t,s,tg]=r.split('|'); const f=i===o.f;
+    return `<div class="ar ${f?'f':''}"><span>${esc(t)}${s?`<small>${esc(s)}</small>`:''}</span>${tg?`<span class="tg ${tg==='on'?'on':''}"></span>`:''}${f?`<span class="press"><b>${esc(o.press||'OK')}</b><i></i></span>`:''}</div>`; }).join('');
+  return `<div class="tvf"><div class="app" style="background:${o.bg||'#17151F'}"><div class="ah"><i style="background:${o.color}">${esc(o.letter)}</i>${esc(o.title)}</div>${rows}</div></div>`;
+}
+function term(lines){
+  const b=lines.map(l=>{ const k=l[0], t=l.slice(2); return `<div class="${k}">${k==='q'?t:esc(t)}</div>`; }).join('');
+  return `<div class="tvf" style="border-color:#232C40"><div class="term"><div class="th"><i></i><i></i><i></i><span style="margin-left:6px">ИИ‑агент на компьютере</span></div><div class="tb">${b}</div></div></div>`;
+}
+
+/* ── wide TV scenes for before/after (cqw) ── */
+const tile=(n,h,c='')=>`<div class="tile ${c}" style="--h:${h}">${n}</div>`;
+const poster=(h,t)=>`<div class="poster" style="--h:${h}">${t?`<i>${t}</i>`:''}</div>`;
+const W={
+  gtvAds:()=>`<div class="fill wall2"></div><div class="gtop"><span>Для вас</span><span>Фильмы</span><span>Сериалы</span><span>Приложения</span><span>Библиотека</span></div><div class="clock">21:40</div>
+    <div class="banner"><b>Новый сериал</b><small>Спонсировано · Оформите подписку</small></div><div class="adtag" style="right:6cqw;top:11.5cqw">РЕКЛАМА</div>
+    <div class="prow" style="top:35cqw">${poster(10,'Спонсор')+poster(200,'Промо')+poster(320,'Спонсор')+poster(40,'')+poster(260,'Промо')+poster(150,'')}</div>`,
+  clean:()=>`<div class="fill wall"></div><div class="clock">21:40</div><div class="rowlab" style="top:12cqw">Мои приложения</div>
+    <div class="trow" style="top:16cqw;grid-template-columns:repeat(3,1fr)">${[['YouTube',2],['Лайм HD',140],['Kodi',200],['Кинопоиск',30],['RetroArch',280],['Музыка',330]].map((a,i)=>tile(a[0],a[1],i?'':'sel')).join('')}</div>`,
+  styled:()=>`<div class="fill wall"></div><div class="clock">21:40</div><div class="rowlab" style="top:6cqw">Кино</div>
+    <div class="trow" style="top:10cqw;grid-template-columns:repeat(4,1fr)">${tile('YouTube',2,'sel')+tile('Лайм HD',140)+tile('Кинопоиск',30)+tile('Kodi',200)}</div><div class="rowlab" style="top:27cqw">Игры</div>
+    <div class="trow" style="top:31cqw;grid-template-columns:repeat(4,1fr)">${tile('RetroArch',280)+tile('PPSSPP',250)+tile('Moonlight',180)+tile('Музыка',330)}</div>`,
+  bloat:()=>{ const n=['Промо','Магазин','Сервис','Партнёр','Обновл.','Игры+','Новости','Бонус']; let c=''; for(let i=0;i<32;i++) c+=`<span>${n[i%8]}</span>`; return `<div class="fill wall2"></div><div class="mini">${c}</div><div class="adtag" style="right:4cqw;bottom:3cqw">32 приложения с завода</div>`; },
+  photo:(k,extra='')=>`<img src="${IMG[k]}" alt="">${extra}`,
+  black:()=>`<div class="fill" style="background:#020203"></div><div class="center"><div class="sub" style="color:#3B4054">Экран погаснет через 1 минуту</div></div>`,
+  iceland:()=>`<img src="${IMG.iceland}" alt="Пейзаж Исландии"><div class="osdc">21:40</div><div class="osd">Вестрахорн, Исландия<small>Aerial Views · 4K</small></div>`,
+  remoteAfter:()=>`<img src="${IMG.remote}" alt="Пульт"><div class="sticker">→ Лайм HD</div>`,
+  ytAd:()=>`<div class="fill vid"></div><div class="play"></div><div class="pill" style="left:4cqw;top:4cqw;background:#FFD43B;color:#2B1B00">Реклама 1 из 2 · 0:15</div><div class="pill" style="right:4cqw;bottom:8cqw;background:rgba(0,0,0,.7);color:#fff">Пропустить через 5</div><div class="ytbar"><i></i><b style="left:30%"></b><b style="left:55%"></b><b style="left:80%"></b></div>`,
+  nosig:()=>`<div class="fill noise"></div><div class="center"><div class="big" style="font-size:6.4cqw;text-shadow:0 0 2cqw #000">Нет сигнала</div><div class="sub" style="text-shadow:0 0 1cqw #000">Антенна не подключена</div></div>`,
+  channels:()=>{ const ch=['Первый','Россия 1','НТВ','СТС','ТНТ','Пятница','Матч ТВ','Карусель','Новости 24']; return `<div class="fill wall"></div><div class="gtop"><span>Избранное</span><span>Кино</span><span>Детские</span><span>Спорт</span></div><div class="chgrid">${ch.map((c,i)=>`<div class="ch ${i<6?'live':''}"><i>${String(i+1).padStart(2,'0')}</i>${c}</div>`).join('')}</div>`; },
+  static:(t)=>`<div class="fill noise"></div><div class="center"><div class="big" style="font-size:5.6cqw;text-shadow:0 0 2cqw #000">${t}</div></div>`,
+  big2:()=>`<div class="fill wall"></div><div class="trow" style="top:12cqw;left:8cqw;right:8cqw;grid-template-columns:repeat(2,1fr);gap:3cqw">${tile('YouTube',2,'sel')+tile('Лайм HD',140)}</div>`,
+  small12:()=>{ const t=[['YouTube',2],['Лайм HD',140],['Kodi',200],['Кинопоиск',30],['RetroArch',280],['Музыка',330],['VLC',25],['Фото',190],['SmartTube',355],['Браузер',220],['Погода',60],['Файлы',100]]; return `<div class="fill wall"></div><div class="trow" style="top:6cqw;grid-template-columns:repeat(4,1fr);gap:1.4cqw">${t.map((a,i)=>tile(a[0],a[1],i?'':'sel')).join('')}</div>`; },
+  mem:(p)=>{ const c=p>80?'#FF6B6B':'#7BE3A0'; return `<div class="fill wall2"></div><div class="center"><div class="sub">Память занята (пример)</div><div class="big" style="color:${c};font-size:12cqw">${p}%</div><div class="memb"><i style="width:${p}%;background:${c}"></i></div></div>`; },
+  connect:(on)=>`<div class="fill" style="background:${on?'#06141C':'#0C0E16'}"></div><div class="dev" style="left:8cqw;width:26cqw;height:17cqw"></div><div class="sub" style="position:absolute;left:8cqw;width:26cqw;top:64%;text-align:center">Компьютер + агент</div>
+    <div class="dev" style="right:6cqw;width:30cqw;height:17cqw;${on?'background:linear-gradient(135deg,#0E3C52,#071019)':''}"></div><div class="sub" style="position:absolute;right:6cqw;width:30cqw;top:64%;text-align:center">Haier</div>
+    <div class="link" style="${on?'background:#5CD3FF;box-shadow:0 0 3cqw #5CD3FF':'background:repeating-linear-gradient(90deg,#FF6B6B 0 2cqw,transparent 2cqw 3.4cqw)'}"></div>
+    <div class="pill" style="left:50%;top:36%;transform:translateX(-50%);background:${on?'#5CD3FF':'#3A1418'};color:${on?'#02202C':'#FF8A8A'}">${on?'ADB · подключено':'нет связи'}</div>`,
+  reset:()=>`<div class="fill" style="background:linear-gradient(180deg,#3A0E12,#14070A)"></div><div class="center"><div class="big" style="font-size:6cqw;color:#FF8A8A">Сброс к заводским</div><div class="sub">Все приложения и настройки — заново</div></div>`,
+  saved:()=>`<div class="fill wall"></div><div class="center"><div class="folder"></div><div class="big" style="font-size:4.6cqw">Мой телевизор</div><div class="sub">Приложения · настройки · журнал · план восстановления</div></div>`,
+  notfound:()=>`<div class="fill wall2"></div><div class="search">Утренний экран для нашей семьи</div><div class="center" style="top:20cqw"><div class="sub">Ничего не найдено</div></div>`,
+  morning:()=>`<div class="fill morning"></div><div style="position:absolute;left:6cqw;top:6cqw"><div class="big" style="font-size:14cqw">07:30</div><div class="sub" style="margin-top:1.4cqw">Суббота · пример экрана</div></div>
+    <div style="position:absolute;right:5cqw;top:7cqw;display:flex;flex-direction:column;gap:1.6cqw;width:38cqw"><div class="ch">Сегодня +5°, облачно</div><div class="ch">Оплатить интернет</div><div class="ch">Фото дня: «Семья»</div></div>
+    <div class="prow" style="bottom:5cqw">${poster(30,'')+poster(190,'')+poster(330,'')+poster(90,'')+poster(250,'')+poster(140,'')}</div>`,
+  shelf:()=>`<div class="fill wall"></div><div class="clock">21:40</div><div class="rowlab" style="top:9cqw">Игры</div>
+    <div class="shelf">
+      <div class="cov md sel"><div class="band">SEGA MEGA DRIVE</div><div class="art" style="background:center/cover url(${IMG.sonic})"><b>Sonic the Hedgehog</b></div></div>
+      <div class="cov ps"><div class="band">PlayStation</div><div class="art" style="background:center/cover url(${IMG.crash})"><b>Crash Bandicoot</b></div></div>
+      <div class="cov pc"><div class="band">ПК · WINLATOR</div><div class="art" style="background:center/cover url(${IMG.gta})"><b>GTA: Vice City</b></div></div>
+      <div class="cov md"><div class="band">SEGA MEGA DRIVE</div><div class="art" style="background:center/cover url(${IMG.mk})"><b>Mortal Kombat 3</b></div></div>
+    </div>`,
+  linux:()=>`<div class="fill desk"></div><div class="panelbar"><b>Debian</b><span>Приложения</span><span>Места</span><span style="margin-left:auto">21:40</span></div>
+    <div class="win" style="left:6cqw;top:8cqw;width:50cqw;height:32cqw"><div class="wt">Firefox</div><div class="wb"><div class="ln" style="width:70%"></div><div class="ln" style="width:90%"></div><div class="ln" style="width:55%"></div><div class="ln" style="width:80%"></div></div></div>
+    <div class="win" style="left:42cqw;top:16cqw;width:48cqw;height:30cqw"><div class="wt">Документ.odt — LibreOffice</div><div class="wb"><div class="ln" style="width:40%;height:1.6cqw;background:#7E8AA6"></div><div class="ln" style="width:95%"></div><div class="ln" style="width:85%"></div></div></div>
+    <div class="dock"><i style="--h:20"></i><i style="--h:210"></i><i style="--h:140"></i><i style="--h:280"></i><i style="--h:50"></i></div>`
+};
+const scr=html=>`<div class="scr">${html}</div>`;
+
+/* ── shared menus (Google TV, Android 14, Russian) ── */
+const MAIN=['account|Ваш профиль|Аккаунт Google','input|Каналы и входы','display|Дисплей и звук','wifi|Сеть и Интернет','account|Аккаунты и вход','lock|Конфиденциальность','apps|Приложения','tv|Система','access|Специальные возможности','remote|Пульты и аксессуары','help|Справка и отзывы'];
+const SYS=['info|Об устройстве','clock|Дата и время','globe|Язык','storage|Хранилище','image|Режим окружения','power|Питание и энергия','tv|Трансляция','power|Перезапустить','code|Для разработчиков'];
+const ABOUT=['|Название устройства|Haier TV','|Сброс','|Статус|Сеть, серийный номер','|Модель|Haier','|Версия ОС Android TV|14','|Сборка ОС Android TV|'];
+const DEV=['bug|Отладка по USB||off','bug|Отладка по Wi‑Fi||off','anim|Анимация окон|Анимация 1x','anim|Анимация переходов|Анимация 1x','anim|Длительность анимации|Анимация 1x'];
+const A=(o)=>`<p class="frame-lab">${o||'Экран телевизора · реконструкция'}</p>`;
+
+/* ── levels ── */
+const PROMPT_BASE='';
+const L=[
+{id:'turbo',w:1,code:'1.1',title:'Турбо‑меню',hook:'Меню вдвое быстрее за 3 минуты',st:'std',
+ ba:{stat:['1x','Меню «плывёт»','0,5x','Всё мгновенно']},
+ thumb:()=>W.mem(47),
+ steps:[
+  {v:gpanel({title:'Настройки',items:MAIN,f:7}),c:'Откройте <b>Настройки</b>: на главном экране шестерёнка справа вверху. Выберите <b>Система</b>.'},
+  {v:gpanel({title:'Система',items:SYS,f:0}),c:'Откройте <b>Об устройстве</b>.'},
+  {v:gpanel({title:'Об устройстве',items:ABOUT,f:5,press:'OK ×7',toast:'Вы стали разработчиком!'}),c:'На строке <b>Сборка ОС Android TV</b> нажмите <b>OK 7 раз подряд</b>, быстро.',n:'Если спросит PIN — введите PIN телевизора.'},
+  {v:gpanel({title:'Система',items:SYS,f:8}),c:'Назад в <b>Система</b>. В самом низу появился раздел <b>Для разработчиков</b>.'},
+  {v:gpanel({title:'Для разработчиков',items:DEV,f:2}),c:'Листайте вниз до <b>Анимация окон</b>.'},
+  {v:gdialog({title:'Анимация окон',opts:['Без анимации','Анимация 0,5x','Анимация 1x','Анимация 1,5x','Анимация 2x'],sel:1,f:1}),c:'Выберите <b>Анимация 0,5x</b>. То же для <b>Анимация переходов</b> и <b>Длительность анимации</b>.'}
+ ],
+ tips:['Раздел не появился — нажатия были медленными или их было меньше семи.','Вернуть как было — поставить «Анимация 1x».','Другие пункты раздела не трогайте — они для программистов.']},
+{id:'launcher',w:1,code:'1.2',title:'Главный экран без рекламы',hook:'Свой лаунчер вместо ленты баннеров',st:'std',
+ ba:{b:W.gtvAds,a:W.clean,cb:'Баннеры и «Спонсировано»',ca:'Только ваши приложения'},
+ steps:[
+  {v:gstore({name:'Projectivy Launcher',dev:'Spocky Projects',letter:'P',color:'linear-gradient(135deg,#7B5CFF,#3A2A8F)'}),c:'Откройте <b>Play Маркет</b>, найдите <b>Projectivy Launcher</b> и нажмите <b>Установить</b>.',n:'Найти быстрее: кнопка микрофона на пульте → «Projectivy».'},
+  {v:gapp({title:'Projectivy · Настройки',letter:'P',color:'#7B5CFF',rows:['Внешний вид|Обои, ряды, значки','Основные|','Override current launcher|Перехватывать кнопку «Домой»|off','Резервная копия|'],f:2,press:'OK'}),c:'В настройках Projectivy включите <b>Override current launcher</b> (в русской версии — «Заменить текущий лаунчер»).'},
+  {v:gpanel({title:'Специальные возможности',items:['|Субтитры','|Крупный текст','|Высокая контрастность','|Projectivy Launcher|Выкл.','|Button Mapper|Выкл.'],f:3}),c:'Телевизор откроет <b>Специальные возможности</b>. Выберите <b>Projectivy Launcher</b> и включите.'},
+  {v:scr(W.clean()),c:'Нажмите <b>Домик</b> на пульте — теперь открывается ваш экран. Перетащите любимые приложения в первый ряд.'}
+ ],
+ tips:['На некоторых Haier прошивка иногда сбрасывает специальные возможности — если вернулся старый экран, просто включите Projectivy там снова.','Вернуть стандартный экран — выключить тот же переключатель.','Полная зачистка рекламы — уровень 2.4.']},
+{id:'buttons',w:1,code:'1.3',title:'Свои кнопки пульта',hook:'Netflix‑кнопка открывает ваши каналы',st:'std',
+ cr:['remote'],ba:{b:()=>W.photo('remote'),a:W.remoteAfter,cb:'Кнопка чужого сервиса',ca:'Одно нажатие — Лайм HD'},
+ steps:[
+  {v:gstore({name:'Button Mapper',dev:'flar2',letter:'B',color:'linear-gradient(135deg,#2E7D32,#1B4D1F)'}),c:'Поставьте из Play Маркета <b>Button Mapper</b>.'},
+  {v:gpanel({title:'Специальные возможности',items:['|Субтитры','|Крупный текст','|Projectivy Launcher|Вкл.','|Button Mapper|Выкл.'],f:3}),c:'Откройте приложение — оно отправит в <b>Специальные возможности</b>. Включите <b>Button Mapper</b>.'},
+  {v:gapp({title:'Button Mapper',letter:'B',color:'#2E7D32',bg:'#121A14',rows:['Добавить кнопку|Нажмите кнопку на пульте','Громкость +|По умолчанию','Громкость −|По умолчанию'],f:0}),c:'Нажмите <b>Добавить кнопку</b> и сразу нажмите на пульте ту кнопку, которую меняете.'},
+  {v:gapp({title:'Netflix',letter:'B',color:'#2E7D32',bg:'#121A14',rows:['Настроить|on','Одно нажатие|Приложение: Лайм HD','Двойное нажатие|Платная функция','Долгое нажатие|По умолчанию'],f:1}),c:'Включите <b>Настроить</b>, затем <b>Одно нажатие → Приложение</b> и выберите нужное.'}
+ ],
+ tips:['Некоторые кнопки обрабатывает сам пульт — их не перехватить. Попробуйте другую.','Отменить — в Button Mapper выключить «Настроить» для кнопки.']},
+{id:'aerial',w:1,code:'1.4',title:'4K‑заставки',hook:'Облёты гор и городов вместо чёрного экрана',st:'std',
+ cr:['iceland'],ba:{b:W.black,a:W.iceland,cb:'Чёрный экран',ca:'Окно в мир'},
+ steps:[
+  {v:gstore({name:'Aerial Views',dev:'Neil Turner',letter:'A',color:'linear-gradient(135deg,#0E7490,#0B3B4A)'}),c:'Поставьте из Play Маркета <b>Aerial Views</b> и откройте.'},
+  {v:gapp({title:'Aerial Views',letter:'A',color:'#0E7490',bg:'#0E1A1F',rows:['Видео|Apple, Amazon, Jetson Creative','Оверлеи|Часы, место съёмки','Предпросмотр|'],f:2}),c:'Выберите источники видео, включите часы и нажмите <b>Предпросмотр</b>.'},
+  {v:gpanel({title:'Заставка',crumb:'Система → Питание и энергия',items:['|Google TV|Фото и рекомендации','|Aerial Views|','|Выключить экран|'],f:1,max:5}),c:'Если в меню есть выбор заставки — выберите <b>Aerial Views</b>.',n:'На многих новых Google TV выбора нет. Это нормально — уровень 2.6 включит заставку одной фразой агенту.'}
+ ],
+ tips:['Видео идут из интернета в высоком качестве — нужен стабильный Wi‑Fi.']},
+
+{id:'agent',w:2,code:'СТАРТ',must:true,title:'Установка ИИ‑агента',hook:'Подписка и программа на компьютере — 15 минут',st:'pay',
+ ba:{b:()=>W.connect(false),a:()=>W.connect(true),cb:'Обычный чат: только советует',ca:'Агент: сам выполняет'},
+ steps:[
+  {v:gapp({title:'Какого агента выбрать',letter:'AI',color:'#5CD3FF',bg:'#0E1626',rows:['Claude — приложение Claude, вкладка Code|Подписка Pro или Max. Эта инструкция писалась с ним','ChatGPT Codex|Подписка ChatGPT Plus или выше'],f:0,press:'советуем'}),lab:'Схема',c:'Выберите агента. Нужен <b>агент, который сам запускает команды</b> на компьютере. Обычный чат в браузере не подойдёт.'},
+  {v:gapp({title:'Подписка',letter:'$',color:'#FFB23E',bg:'#1A1508',rows:['Claude Pro|около $20 в месяц · Claude Code включён','Claude Max|для больших задач, дороже','ChatGPT Plus|около $20 в месяц · Codex включён'],f:0,press:'выбрать'}),lab:'Схема',c:'Оформите подписку на сайте сервиса: <b>claude.ai</b> → тарифы → Pro. Для Codex — <b>chatgpt.com</b> → Plus.',n:'Цены ориентировочные — точные условия и способы оплаты смотрите на сайте сервиса в момент покупки.'},
+  {v:term(['a 1. Откройте claude.ai/download','a 2. Скачайте приложение для Windows или Mac и установите','a 3. Войдите в свой аккаунт с подпиской','k Вкладка Code — это и есть агент']),lab:'Схема',c:'Установите приложение: <b>claude.ai/download</b> → войдите → вкладка <b>Code</b>.',n:'Для Codex — инструкция на developers.openai.com/codex.'},
+  {v:term(['a Выберите папку для работы','k C:\\Мой телевизор','a Здесь агент будет хранить резервные копии, журнал tv-log.txt и план восстановления.']),lab:'Схема',c:'Создайте папку <b>«Мой телевизор»</b> и откройте её в агенте — там будут копии и журнал.'},
+  {v:term(['u Привет! Ты можешь запускать команды на моём компьютере?','a Да. Я могу выполнять команды, но перед каждым действием буду спрашивать ваше разрешение.','q Ответил так — <b>агент готов</b>, переходите к 2.0']),lab:'Схема',c:'Проверка: напишите агенту вопрос с экрана. Если он отвечает, что может выполнять команды, — всё готово.'}
+ ],
+ tips:['Агент спрашивает разрешение на команды — это нормально. Читайте, что он собирается сделать, и только потом соглашайтесь.','Компьютер должен быть в той же Wi‑Fi сети, что и телевизор.','Подписку можно отменить в любой момент на сайте сервиса.']},
+{id:'connect',w:2,code:'2.0',title:'Подключаем агента',hook:'Один раз — и ИИ управляет телевизором',st:'haier',
+ ba:{b:()=>W.connect(false),a:()=>W.connect(true),cb:'Не знакомы',ca:'Агент на связи'},
+ steps:[
+  {v:gpanel({title:'Для разработчиков',items:DEV,f:1}),c:'Пройдите уровень <b>1.1</b>. В <b>Для разработчиков</b> включите <b>Отладка по Wi‑Fi</b>.',n:'Нет такого пункта — включите «Отладка по USB».'},
+  {v:gpanel({title:'Домашняя сеть',crumb:'Сеть и Интернет → ваша сеть Wi‑Fi',items:['|Состояние|Подключено','|Уровень сигнала|Отличный','|IP‑адрес|192.168.1.50','|Забыть сеть|'],f:2,press:'запомнить',max:5}),c:'Узнайте <b>IP‑адрес</b> телевизора: Сеть и Интернет → ваша Wi‑Fi сеть.'},
+  {t:'prompt'},
+  {v:gdialog({title:'Подключить устройство с кодом',text:'Код подключения по Wi‑Fi',code:'482 913',btns:['Отмена']}),c:'Агент попросит код. На ТВ: <b>Отладка по Wi‑Fi → Подключить устройство с кодом</b>. Продиктуйте 6 цифр.'},
+  {v:gdialog({title:'Разрешить отладку?',text:'Отпечаток ключа компьютера: 3F:A1:…:9C',check:'Всегда разрешать с этого компьютера',btns:['Отмена','OK'],bf:1}),c:'Если появится окно — отметьте <b>Всегда разрешать</b> и нажмите <b>OK</b>.'},
+  {v:term(['u Подключись к телевизору…','c adb connect 192.168.1.50:41235','k connected to 192.168.1.50:41235','a Готово! Haier, Android 14. Свободно 3,1 ГБ памяти, установлено 47 приложений. Что делаем дальше?']),c:'Агент на связи. Дальше — любой уровень Мира 2.'}
+ ],
+ prompt:`Ты помогаешь мне настроить Android-телевизор Haier (Google TV, Android 14) через ADB.
+Адрес телевизора: [IP-адрес].
+
+1. Если нет adb — скачай официальные Android SDK Platform-Tools с developer.android.com.
+2. Подключись. Нужен код сопряжения — попроси у меня код с экрана.
+3. Ничего не меняй: покажи модель, версию Android, свободную память и список приложений.
+
+Правила на всю работу:
+— перед любым изменением объясни простыми словами, что сделаешь и как отменить, и жди моего «да»;
+— ничего не удаляй насовсем, только отключай;
+— записывай каждое изменение и команду отката в tv-log.txt.`,
+ tips:['Нужен компьютер в той же Wi‑Fi сети и агент: Claude (приложение Claude, вкладка Code) или ChatGPT Codex. Обычный чат в браузере не подойдёт.','После перезагрузки ТВ порт меняется — скажите агенту «подключись заново».','Закончили — выключите отладку.']},
+{id:'backup',w:2,code:'2.1',must:true,title:'Точка сохранения',hook:'Обязательно до любых настроек — откат в любой момент',st:'std',
+ ba:{b:W.reset,a:W.saved,cb:'Ошибка — и всё заново',ca:'Откат одной фразой'},
+ steps:[{t:'prompt'},{v:term(['k Сохранено в «Мой телевизор»: 47 приложений, состояние каждого, системные настройки, главный экран','a План возврата — restore.txt. Дальше перед каждым уровнем буду обновлять копию и писать журнал tv-log.txt.','q Если что-то пойдёт не так: <b>«Верни всё как было по restore.txt»</b>']),c:'Агент сохраняет телевизор <b>как он есть сейчас</b>. Теперь любой следующий уровень можно откатить.',n:'Цифры на экране — пример.'}],
+ prompt:`Перед любыми изменениями сделай полную резервную копию текущего состояния телевизора в папку «Мой телевизор» на компьютере:
+— список всех приложений и состояние каждого (включено / отключено);
+— APK приложений, установленных не из Play Маркета;
+— все системные настройки (global, secure, system), масштаб экрана, главный экран.
+Напиши restore.txt — как вернуть телевизор ровно в это состояние. Проверь план, ничего не меняя.
+Дальше перед каждой новой настройкой обновляй копию и записывай изменения в tv-log.txt.`,
+ tips:['Что-то пошло не так в любом уровне: «Верни всё как было по restore.txt».','Копия хранится на компьютере — не удаляйте папку «Мой телевизор».']},
+{id:'diag',w:2,code:'2.2',title:'Почему тормозит?',hook:'Агент находит виновника за минуту',st:'std',
+ ba:{b:()=>W.mem(91),a:()=>W.mem(47),cb:'Память забита',ca:'Память свободна'},
+ steps:[{t:'prompt'},
+  {v:term(['u Почему тормозит?','c adb shell dumpsys meminfo','a Больше всего памяти в фоне едят: промо‑сервис (310 МБ), обновления магазина (190 МБ), партнёрские виджеты (140 МБ). Предлагаю: отключить их, анимации 0,5x, лимит фоновых процессов — 3. Делаем?','q Ответьте: <b>да</b> или выберите пункты']),c:'Агент покажет, кто ест память, и предложит план. Цифры на картинке — пример.'}],
+ prompt:`Проверь, почему телевизор тормозит: память, место, какие приложения работают в фоне.
+Покажи таблицу: приложение — что это — сколько ест — что предлагаешь.
+Затем ускорь по моему «да»: анимации 0,5x, лимит фоновых процессов, очистка кеша, отключение автозапуска лишнего.
+В конце покажи, сколько памяти стало свободно.`},
+{id:'debloat',w:2,code:'2.3',title:'Чистка заводского мусора',hook:'Минус десятки лишних приложений',st:'haier',
+ ba:{b:W.bloat,a:W.clean,cb:'32 приложения с завода',ca:'Только нужное'},
+ steps:[{t:'prompt'},
+  {v:term(['a Можно отключить: 1) Промо‑витрина 2) Партнёрские игры 3) Обновлятель рекламы …','a Лучше оставить: Play Маркет, YouTube…','a Нельзя трогать: система, настройки, клавиатура, ТВ‑входы.','q Ответьте номерами: <b>1, 2, 3</b>']),c:'Агент разложит приложения на три группы. Ответьте номерами того, что отключить.'}],
+ prompt:`Покажи все предустановленные приложения. Для каждого — одна строка простыми словами: что делает и нужно ли обычному человеку.
+Раздели на группы: «можно отключить», «лучше оставить», «нельзя трогать» (система, сервисы Google Play, настройки, клавиатура, ТВ-входы, пульт).
+Отключай только то, что я выберу (pm disable-user), команды возврата — в tv-log.txt.`,
+ tips:['Передумали — «включи обратно [название]». Ничего не удаляется насовсем.']},
+{id:'ads',w:2,code:'2.4',title:'Реклама — на выход',hook:'Блокировка рекламы во всей системе',st:'std',
+ ba:{b:W.gtvAds,a:W.clean,cb:'Баннеры повсюду',ca:'Чистый экран'},
+ steps:[{t:'prompt'},
+  {v:term(['c adb shell settings put global private_dns_mode hostname','c adb shell settings put global private_dns_specifier dns.adguard-dns.com','k Частный DNS AdGuard включён','a Проверил: YouTube и Play Маркет открываются. Рекламные адреса теперь блокируются во всех приложениях.']),c:'Агент включает частный DNS AdGuard — настройки, которой нет в меню телевизора.'}],
+ prompt:`Убери рекламу на телевизоре:
+1. Включи системный частный DNS AdGuard (dns.adguard-dns.com).
+2. Отключи персонализированную рекламу Google.
+3. Если стоит Projectivy Launcher — сделай его главным и отключи стандартный экран Google TV так, чтобы его можно было вернуть.
+После каждого шага проверь, что YouTube и Play Маркет работают.`,
+ tips:['Рекламу в официальном YouTube так не убрать — уровень 2.8.','Что-то перестало работать — «верни DNS как было».']},
+{id:'style',w:2,code:'2.5',title:'Оформление под ключ',hook:'Экран собран под вашу семью',st:'std',
+ ba:{b:W.gtvAds,a:W.styled,cb:'Как у всех',ca:'Ряды «Кино» и «Игры»'},
+ steps:[{t:'prompt'},
+  {v:term(['a Установил Projectivy и сделал главным.','a Чтобы закончить, нажмите на пульте Домик, затем OK на «Разрешить».','q Агент подсказывает, <b>что нажать пультом</b>']),c:'Агент читает экран как текст и нажимает пункты сам. Где без пульта никак — подскажет кнопку.'}],
+ prompt:`Оформи главный экран.
+— Установи Projectivy Launcher, если нет, и сделай главным.
+— Ряд «Кино»: [YouTube, Лайм HD, Кинопоиск]. Ряд «Игры»: эмуляторы. Остальное — во «Все приложения».
+— Тёмные обои в стиле кинотеатра.
+— Кнопку [Netflix] на пульте назначь на [Лайм HD] через Button Mapper.
+Где нужно нажать пультом — скажи мне, что именно.`},
+{id:'saver',w:2,code:'2.6',title:'Заставка, спрятанная Google',hook:'Aerial Views одной фразой',st:'std',
+ cr:['iceland'],ba:{b:W.black,a:W.iceland,cb:'Выбора нет в меню',ca:'4K‑облёты'},
+ steps:[{t:'prompt'},{v:term(['c adb shell settings put secure screensaver_components …/AerialViews…','k Заставка: Aerial Views, через 5 минут','a Проверил запуск. Вернуть стандартную — команда в tv-log.txt.']),c:'Подождите 5 минут, не трогая пульт.'}],
+ prompt:`Установи Aerial Views из Play Маркета, если нет, и сделай системной заставкой через ADB.
+Пусть включается через 5 минут простоя. Проверь запуск и запиши, как вернуть стандартную.`},
+{id:'density',w:2,code:'2.7',title:'Больше на экране',hook:'Вдвое больше плиток без прокрутки',st:'std',
+ ba:{b:W.big2,a:W.small12,cb:'Крупно и мало',ca:'Компактно'},
+ steps:[{t:'prompt'},{v:term(['c adb shell wm density','o Physical density: 320','c adb shell wm density 280','q Посмотрите на экран: <b>оставить</b> или <b>вернуть</b>?']),c:'Агент меняет масштаб по шагу. Отвечайте «оставить» или «вернуть».'}],
+ prompt:`Уменьши масштаб интерфейса, чтобы помещалось больше плиток (wm density).
+Запомни текущее значение. Меняй по шагу; после каждого я говорю «оставить» или «вернуть».
+Если что-то поплыло — сразу верни стандартное.`},
+{id:'smarttube',w:2,code:'2.8',title:'YouTube без рекламы',hook:'Ролики сразу, без вставок',st:'std',
+ cr:['smarttube'],ba:{b:W.ytAd,a:()=>W.photo('smarttube'),cb:'Реклама 0:15',ca:'SmartTube, без рекламы'},
+ steps:[{t:'prompt'},{v:scr(W.photo('smarttube')),c:'На главном экране появится <b>SmartTube</b>. Войти в аккаунт можно по коду с экрана.',n:'Это неофициальный клиент YouTube. Ставить или нет — решаете вы.'}],
+ prompt:`Установи SmartTube — клиент YouTube для телевизоров.
+Скачай последнюю стабильную версию только с github.com/yuliskov/SmartTube и проверь, что файл оттуда.
+Установи, включи пропуск спонсорских вставок, объясни, как войти в аккаунт и как удалить.`},
+{id:'tv',w:2,code:'2.9',title:'Телеканалы под ключ',hook:'Сотни каналов без антенны',st:'std',
+ ba:{b:W.nosig,a:W.channels,cb:'Нет сигнала',ca:'Избранное из рабочих'},
+ steps:[{t:'prompt'},{v:term(['a Установил «Лайм HD TV» и OTT Navigator, загрузил плейлист.','a Проверил 412 каналов: показывают 287. Собрал избранное: новости, кино, детские, спорт.','k Кнопка «Netflix» на пульте → Избранное']),c:'Агент сам проверит с компьютера, какие каналы показывают, и выкинет нерабочие. Цифры — пример.'}],
+ prompt:`Настрой мне телеканалы:
+1. Установи из Play Маркета «Лайм HD TV».
+2. Установи OTT Navigator и добавь плейлист https://iptv-org.github.io/iptv/languages/rus.m3u
+3. Проверь с компьютера, какие каналы показывают, и собери избранное только из рабочих: [новости, кино, детские, спорт].
+4. Назначь кнопку [название] на пульте на избранное.`,
+ tips:['В Лайм HD каналы бесплатные, но с рекламой; с VPN могут не показываться.','Раз в месяц: «обнови избранное каналов».']},
+{id:'games',w:2,code:'2.10',title:'Игровая приставка',hook:'Sonic на MD.emu, Crash на ePSXe, GTA через Winlator',st:'exp',
+ ba:{b:()=>W.static('Только телевизор'),a:W.shelf,cb:'Только ТВ',ca:'Ряд «Игры» на главном'},
+ extra:`<div class="sec"><h3>Так выглядят игры на экране</h3></div>
+  <div class="gallery">
+   <figure><img src="${IMG.sonic}" alt="Sonic the Hedgehog, Sega Mega Drive"><figcaption><b>Sonic the Hedgehog</b> · Sega Mega Drive · MD.emu</figcaption></figure>
+   <figure><img src="${IMG.mk}" alt="Mortal Kombat 3, выбор бойца"><figcaption><b>Mortal Kombat 3</b> · Sega Mega Drive · MD.emu</figcaption></figure>
+   <figure><img src="${IMG.crash}" alt="Crash Bandicoot"><figcaption><b>Crash Bandicoot</b> · кадр из ремейка; оригинал для PlayStation в ePSXe выглядит проще</figcaption></figure>
+   <figure><img src="${IMG.gta}" alt="GTA: Vice City с модом"><figcaption><b>GTA: Vice City</b> · версия для ПК (с модом) · запускается через Winlator</figcaption></figure>
+  </div>
+  <div class="sec"><h3>Какой эмулятор для чего</h3></div>
+  <div class="wcards">
+   <div><span class="ic">MD</span><div><b>MD.emu — Sega Mega Drive</b><span>Sonic, Mortal Kombat 3, Aladdin, Comix Zone. Платный, в Play Маркете.</span></div></div>
+   <div><span class="ic">PS</span><div><b>ePSXe — PlayStation 1</b><span>Crash Bandicoot, Tekken 3, Spyro, Gran Turismo. Платный, в Play Маркете, поддерживает Android TV и геймпады.</span></div></div>
+   <div><span class="ic">PC</span><div><b>Winlator — игры для компьютера</b><span>GTA: Vice City, Heroes III, Need for Speed: Underground — игры для Windows начала 2000‑х. Бесплатный, с GitHub. Лучше всего на M7 и старше.</span></div></div>
+   <div><span class="ic">PSP</span><div><b>PPSSPP — PSP</b><span>GTA: Vice City Stories, God of War, Tekken 6. Бесплатный.</span></div></div>
+  </div>
+  <div class="sec"><h3>Где взять игры</h3></div>
+  <div class="wcards">
+   <div><span class="ic">1</span><div><b>Копии ваших картриджей и дисков</b><span>Положите файлы игр на флешку или в папку на компьютере — агент перенесёт их на ТВ и подключит к эмуляторам.</span></div></div>
+   <div><span class="ic">2</span><div><b>Ваши игры для компьютера</b><span>GTA: Vice City и другие игры для ПК — с вашего диска или купленные в магазине. Агент скопирует папку игры с компьютера в Winlator.</span></div></div>
+   <div><span class="ic">3</span><div><b>Бесплатные игры из интернета</b><span>Старые игры, которые авторы сами раздают бесплатно, и новые игры для Sega и PlayStation от энтузиастов. Агент найдёт, скачает и проверит сам.</span></div></div>
+  </div>
+  <p class="note">Агент скачивает только то, что авторы разрешают раздавать. Sonic, Crash и GTA к таким не относятся — для них нужны ваши копии или покупка.</p>
+  <div class="sec"><h3>Что потянет ваш Haier</h3></div>
+  <div class="compat">
+   <div><b>Sega, Dendy, SNES</b><span class="g g4">отлично на всех</span></div>
+   <div><b>PlayStation 1</b><span class="g g4">отлично на всех</span></div>
+   <div><b>PSP</b><span class="g g3">хорошо · M7 отлично</span></div>
+   <div><b>PlayStation 2</b><span class="g g1">только M7, лёгкие</span></div>
+   <div><b>Игры для ПК (GTA VC)</b><span class="g g2">эксперимент · лучше M7</span></div>
+  </div>`,
+ steps:[
+  {v:gpanel({title:'Пульты и аксессуары',items:['plus|Подключить пульт или аксессуар','remote|Пульт Haier|Подключено'],f:0,max:4}),c:'Подключите <b>геймпад</b>: Настройки → <b>Пульты и аксессуары → Подключить</b>.',n:'Xbox — зажмите кнопку Xbox и маленькую кнопку сверху. DualSense — PS + Create на 3 секунды.'},
+  {v:gstore({name:'MD.emu  ·  ePSXe',dev:'Эмуляторы Sega и PlayStation',letter:'▶',color:'linear-gradient(135deg,#1E5BD8,#0A1E55)'}),lab:'Схема',c:'Купите в Play Маркете на телефоне <b>MD.emu</b> и <b>ePSXe</b> → «Установить на устройства» → ваш телевизор.',n:'Покупку делаете вы — агент оплачивать не может. PPSSPP и Winlator бесплатные, их поставит агент.'},
+  {t:'prompt'},
+  {v:term(['k MD.emu и ePSXe найдены, PPSSPP установлен','q Где ваши игры? <b>1</b> — папка на компьютере, <b>2</b> — флешка','u 1, C:\\Games','k Sonic the Hedgehog → MD.emu','k Crash Bandicoot → ePSXe','k GTA: Vice City → Winlator, запуск с геймпада','k Геймпад настроен во всех эмуляторах, выход в меню — Select + Start','k Ряд «Игры» добавлен на главный экран']),lab:'Экран агента',c:'Агент сам настраивает эмуляторы, переносит игры и подключает геймпад. Спросит только, где лежат ваши игры.'},
+  {v:scr(W.shelf()),lab:'Так будет на телевизоре · схема',c:'На главном экране — ряд <b>«Игры»</b>. Выберите обложку и нажмите <b>OK</b>: игра откроется сразу в нужном эмуляторе.',n:'Выйти из игры — Select + Start на геймпаде.'}
+ ],
+ prompt:`Сделай из телевизора игровую приставку. Делай всё сам, спрашивай меня, только когда без меня нельзя.
+1. Проверь, что на телевизоре установлены MD.emu (Sega) и ePSXe (PlayStation). Поставь бесплатный PPSSPP (PSP).
+2. Определи процессор телевизора и скажи, какие игры пойдут хорошо.
+3. Спроси, где мои копии игр (папка на компьютере или флешка). Дополнительно найди и скачай бесплатные игры, которые авторы разрешают раздавать, — сначала покажи мне список. Перенеси всё на ТВ: игры Sega — для MD.emu, PlayStation — для ePSXe, PSP — для PPSSPP. Пиратские копии не скачивай.
+4. Настрой мой геймпад [Xbox / DualSense] во всех эмуляторах. Выход из игры в меню — Select + Start.
+5. Установи Winlator с официального GitHub (github.com/brunodev85/winlator). Перенеси мою ПК-версию [GTA: Vice City] из папки [C:\\Games\\GTA Vice City], настрой запуск с геймпада и честно скажи, как она идёт на этом телевизоре.
+6. Сделай на главном экране ряд «Игры» с обложками: каждая обложка сразу запускает свою игру в нужном эмуляторе.
+7. Запусти [Sonic the Hedgehog] для проверки.`,
+ tips:['Игра тормозит — скажите агенту «[название] тормозит, настрой». Он поменяет настройки эмулятора.','Winlator — эксперимент: на M4 GTA может идти рывками, на M7 и старше — заметно лучше.','Изображение отстаёт от геймпада — включите на телевизоре режим изображения «Игра».']},
+{id:'boss',w:2,code:'БОСС',boss:true,title:'ИИ пишет своё приложение',hook:'Такого нет ни в одном магазине',st:'exp',
+ ba:{b:W.notfound,a:W.morning,cb:'Ничего не найдено',ca:'Ваше приложение «Утро»'},
+ steps:[{t:'prompt'},
+  {v:term(['a Устанавливаю инструменты Android на компьютер…','a Собираю приложение «Утро»…','k APK установлен на телевизор, назначен на кнопку YouTube','q Попросите доработки: <b>«шрифт крупнее»</b>, <b>«добавь фото из папки»</b>']),c:'Первая сборка — около часа. Дальше доработки идут за минуты.',n:'Идеи: квиз для детей, табло для дачи, семейный календарь.'}],
+ prompt:`Создай для моего телевизора Android TV-приложение «Утро».
+Экран: крупные часы, погода на сегодня для [город] (Open-Meteo, без ключа), курс доллара и евро, напоминания из текстового файла, слайд-шоу фото из папки на ТВ.
+Управление пультом, тёмная тема, крупный шрифт.
+Сам установи инструменты, собери APK, поставь на ТВ и назначь на кнопку [название] через Button Mapper.`},
+{id:'linux',w:2,code:'СЕКРЕТ',boss:true,title:'Компьютер внутри ТВ',hook:'Рабочий стол Linux на большом экране',st:'exp',
+ ba:{b:W.clean,a:W.linux,cb:'Просто телевизор',ca:'Компьютер'},
+ steps:[{t:'prompt'},{v:scr(W.linux()),c:'Подключите USB‑мышь и клавиатуру и откройте ярлык <b>Компьютер</b>.',n:'Нужно 4–6 ГБ свободного места; на базовых моделях работает неторопливо.'}],
+ prompt:`Установи Termux и Termux:X11 с официальных страниц GitHub.
+Разверни Debian с рабочим столом XFCE, Firefox и LibreOffice.
+Сделай ярлык «Компьютер» на главном экране, скажи, сколько места занято и как всё удалить.`}
+];
+const WORLDS={1:{t:'Пульт и диван',e:'Мир 1 · без компьютера',s:'Четыре скрытые фишки, которых нет в обычном меню.',need:['<b>Пульт</b>','<b>Интернет</b> на ТВ']},
+              2:{t:'ИИ берёт управление',e:'Мир 2 · компьютер + ИИ‑агент',s:'Вы отправляете фразу — агент сам настраивает ТВ по сети. Начните со СТАРТ, затем 2.0 и обязательной 2.1.',need:['<b>Компьютер</b> в той же Wi‑Fi','<b>Claude</b> (вкладка Code) или <b>Codex</b>','Всё <b>обратимо</b>']}};
+const STATUS={haier:['haier','Проверено на Haier'],std:['std','Штатная функция Android TV — названия пунктов могут отличаться'],exp:['exp','Эксперимент — зависит от модели'],pay:['std','Нужна платная подписка на ИИ‑сервис']};
+const GRADE=['не тянет','лёгкие игры','средне','хорошо','отлично'];
+const inW=w=>L.filter(l=>l.w===w);
+
+/* ── state ── */
+const KEY='haier-quest-v3'; let done={};
+try{ const r=localStorage.getItem(KEY); if(r) done=JSON.parse(r)||{}; }catch(e){}
+const save=()=>{ try{ localStorage.setItem(KEY,JSON.stringify(done)); }catch(e){} };
+const reduce=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;
+let view='home', world=1, cur=null, sw=null;
+
+/* ── renderers ── */
+function thumbHTML(l){ const fn=l.ba.a||l.thumb; return scr(fn()); }
+function setTop(){
+  const t=document.getElementById('topIn'); const top=document.getElementById('top');
+  top.className='top '+(view==='home'?'':(world===1?'w1v':'w2v'));
+  if(view==='home'){ t.innerHTML='<span class="logo">HAIER<span>//</span>UP</span><span class="ttl"></span><span class="sp"></span>'; }
+  else if(view==='world'){ t.innerHTML=`<button class="back" type="button" data-go="home">‹ Меню</button><span class="ttl">${WORLDS[world].t}</span><span class="sp">${inW(world).filter(l=>done[l.id]).length}/${inW(world).length}</span>`; }
+  else { t.innerHTML=`<button class="back" type="button" data-go="w${world}">‹ Мир ${world}</button><span class="ttl">${cur.title}</span><span class="sp">${cur.code}</span>`; }
+  ['home','w1','w2'].forEach(k=>document.getElementById('tab-'+k).classList.toggle('on',(view==='home'&&k==='home')||(view!=='home'&&k==='w'+world)));
+}
+function pips(){ [1,2].forEach(w=>document.getElementById('pips'+w).innerHTML=inW(w).map(l=>`<i class="${done[l.id]?'on':''}"></i>`).join('')); }
+function renderWorld(){
+  const W0=WORLDS[world];
+  document.getElementById('worldIn').innerHTML=`<div class="${world===1?'w1v':'w2v'}">
+    <div class="whead"><p class="eyebrow">${W0.e}</p><h2>${W0.t}</h2><p>${W0.s}</p><div class="need">${W0.need.map(n=>`<span>${n}</span>`).join('')}</div></div>
+    <div class="path">${inW(world).map(l=>`<div class="lrow"><span class="node ${l.boss?'boss':''} ${done[l.id]?'done':''}">${l.boss?(l.code==='БОСС'?'Б':'?'):(l.code==='СТАРТ'?'▶':l.code)}</span>
+      <button class="lcard ${l.boss?'boss':''}" type="button" data-lvl="${l.id}"><span class="th">${thumbHTML(l)}</span><span class="tx">${done[l.id]?'<span class="ok">ПРОЙДЕН ✓</span>':(l.must?'<span class="must">ОБЯЗАТЕЛЬНО</span>':'')}<h3>${l.title}</h3><span class="hk">${l.hook}</span></span></button></div>`).join('')}</div>
+    ${world===1?`<div class="nextlvl"><button class="btn btn-ghost" type="button" data-go="w2">Дальше: Мир 2 · ИИ‑агент →</button></div>`:''}
+  </div>`;
+}
+function baHTML(l){
+  if(l.ba.stat){ const s=l.ba.stat; return `<div class="ba stat"><div class="b"><small>БЫЛО</small><big>${s[0]}</big><span>${s[1]}</span></div><div class="arr">→</div><div class="a"><small>СТАЛО</small><big>${s[2]}</big><span>${s[3]}</span></div></div>`; }
+  return `<div class="ba"><div class="ba-frame"><span class="ba-lab b">БЫЛО</span><span class="ba-lab a">СТАЛО</span>
+    <img-comparison-slider id="cmp" value="50" aria-label="Было и стало"><div slot="first">${scr(l.ba.b())}</div><div slot="second">${scr(l.ba.a())}</div></img-comparison-slider></div>
+    <div class="ba-sw"><button type="button" data-ba="0"><small>БЫЛО</small><b>${l.ba.cb}</b></button><button type="button" class="a on" data-ba="1"><small>СТАЛО</small><b>${l.ba.ca}</b></button></div></div>`;
+}
+function promptSlide(l){
+  return `<div class="step"><div class="cap"><span class="num">›_</span><div><p>Скопируйте фразу и отправьте <b>ИИ‑агенту</b> на компьютере.</p><p class="note">Слова в <span style="color:var(--amber)">[скобках]</span> замените на свои.</p></div></div>
+    <div class="prompt" id="pbox"><pre>${esc(l.prompt).replace(/\[([^\]]+)\]/g,'<span class="ph">[$1]</span>')}</pre></div>
+    <div class="prompt-actions"><button class="btn btn-main" type="button" id="copyBtn">Скопировать</button><button class="btn btn-ghost" type="button" id="moreBtn">Весь текст</button></div></div>`;
+}
+function renderLevel(){
+  const l=cur, idx=inW(world).indexOf(l), st=STATUS[l.st];
+  const slides=l.steps.map((s,i)=>{
+    if(s.t==='prompt') return `<div class="swiper-slide">${promptSlide(l)}</div>`;
+    return `<div class="swiper-slide"><div class="step">${A(s.lab||(s.v.startsWith('<div class="scr">')?'Экран телевизора':'Экран телевизора · реконструкция'))}${s.v}<div class="cap"><span class="num">${i+1}</span><div><p>${s.c}</p>${s.n?`<p class="note">${s.n}</p>`:''}</div></div></div></div>`;
+  }).join('') + `<div class="swiper-slide"><div class="step finish"><big>Уровень пройден?</big><p>Отметьте — на карте появится галочка.</p>
+     <button class="btn btn-main" type="button" id="doneBtn">${done[l.id]?'Пройден ✓':'Да, получилось!'}</button>
+     <button class="btn btn-ghost" type="button" id="nextBtn">${idx<inW(world).length-1?'Следующий уровень →':(world===1?'В Мир 2 →':'В главное меню')}</button></div></div>`;
+  const table=l.table?`<div class="sec"><h3>Что потянет телевизор</h3></div><div class="tbl"><table><thead><tr><th>Приставка</th><th>Эмулятор</th><th>M4</th><th>M7+</th></tr></thead><tbody>${l.table.map(r=>`<tr><td>${r[0]}</td><td>${r[1]}</td><td class="g g${r[2]}">${GRADE[r[2]]}</td><td class="g g${r[3]}">${GRADE[r[3]]}</td></tr>`).join('')}</tbody></table></div><p class="note">Оценка по классу процессора, не замер. Агент проверит вашу модель.</p>`:'';
+  document.getElementById('levelIn').innerHTML=`<div class="${l.w===1?'w1v':'w2v'}">
+    <div class="lhead"><span class="code">${(l.boss||l.code==='СТАРТ')?l.code:'УРОВЕНЬ '+l.code}</span>${l.must?' <span class="must">ОБЯЗАТЕЛЬНО</span>':''}<h2>${l.title}</h2><p class="hook">${l.hook}</p></div>
+    ${baHTML(l)}
+    <div class="sec"><h3>Пошагово</h3><span id="stepCount">1 / ${l.steps.length+1}</span></div>
+    <div class="swiper" id="steps"><div class="swiper-wrapper">${slides}</div></div>
+    <div class="dots" id="dots">${l.steps.map(()=>'<i></i>').join('')}<i></i></div>
+    <div class="stepnav"><button class="btn btn-ghost" type="button" id="prevS">‹ Назад</button><button class="btn btn-main" type="button" id="nextS">Дальше ›</button></div>
+    ${l.extra||''}
+    ${table}
+    ${l.hits?`<div class="sec"><h3>Хиты, в которые можно сыграть</h3></div><div class="hits">${l.hits.map(h=>`<span><b>${h[0]}</b>${h[1]}</span>`).join('')}</div><p class="note">Игры — копии ваших дисков и картриджей.</p>`:''}
+    ${l.tips?`<details class="tips"><summary>Если что-то не так</summary><ul>${l.tips.map(t=>`<li>${t}</li>`).join('')}</ul></details>`:''}
+    <p class="status ${st[0]}"><i></i>${st[1]}</p>
+    ${l.cr?`<p class="credits">Изображения: ${[...new Set(l.cr.map(k=>CREDIT[k]))].join('; ')}. Источник — Wikimedia Commons и GitHub.</p>`:''}
+  </div>`;
+  if(sw){ sw.destroy(true,true); sw=null; }
+  if(window.Swiper){ sw=new Swiper('#steps',{autoHeight:true,spaceBetween:14,speed:reduce?0:320,on:{slideChange:upd}}); }
+  upd();
+}
+function upd(){
+  const n=cur.steps.length+1, i=sw?sw.activeIndex:0;
+  const sc=document.getElementById('stepCount'); if(sc) sc.textContent=(i===n-1?'Финиш':`${i+1} / ${n-1}`);
+  document.querySelectorAll('#dots i').forEach((d,k)=>d.classList.toggle('on',k===i));
+  const p=document.getElementById('prevS'), x=document.getElementById('nextS');
+  if(p) p.disabled=i===0, p.style.opacity=i===0?.4:1;
+  if(x) x.style.visibility=i===n-1?'hidden':'visible';
+}
+
+/* ── navigation ── */
+let agreed=false; try{ agreed=localStorage.getItem('haier-quest-agree')==='1'; }catch(e){}
+let pending=null;
+function showAgree(next){ pending=next||null; document.getElementById('agree').hidden=false; document.getElementById('agreeYes').focus(); }
+function go(target){
+  if(target!=='home' && !agreed){ showAgree(()=>go(target)); return; }
+  if(target==='home'){ view='home'; pips(); }
+  else if(target==='w1'||target==='w2'){ view='world'; world=+target[1]; renderWorld(); }
+  ['home','world','level'].forEach(v=>document.getElementById('scr-'+v).hidden=(v!==view));
+  setTop(); window.scrollTo(0,0);
+}
+function openLevel(id){ if(!agreed){ showAgree(()=>openLevel(id)); return; } cur=L.find(l=>l.id===id); world=cur.w; view='level';
+  ['home','world','level'].forEach(v=>document.getElementById('scr-'+v).hidden=(v!=='level'));
+  renderLevel(); setTop(); window.scrollTo(0,0); }
+
+document.addEventListener('click',e=>{
+  if(e.target.closest('#agreeOpen')){ showAgree(null); return; }
+  if(e.target.closest('#agreeYes')){ agreed=true; try{ localStorage.setItem('haier-quest-agree','1'); }catch(x){} document.getElementById('agree').hidden=true; const p=pending; pending=null; if(p) p(); return; }
+  if(e.target.closest('#agreeNo')||e.target.id==='agree'){ document.getElementById('agree').hidden=true; pending=null; return; }
+  const g=e.target.closest('[data-go]'); if(g){ go(g.dataset.go); return; }
+  const lv=e.target.closest('[data-lvl]'); if(lv){ openLevel(lv.dataset.lvl); return; }
+  const ba=e.target.closest('[data-ba]'); if(ba){ const c=document.getElementById('cmp'); const a=ba.dataset.ba==='1'; if(c) c.value=a?0:100;
+    document.querySelectorAll('[data-ba]').forEach(b=>b.classList.toggle('on',b===ba)); return; }
+  if(e.target.closest('#nextS')){ sw&&sw.slideNext(); return; }
+  if(e.target.closest('#prevS')){ sw&&sw.slidePrev(); return; }
+  if(e.target.closest('#moreBtn')){ const b=document.getElementById('pbox'); b.classList.toggle('open'); e.target.closest('#moreBtn').textContent=b.classList.contains('open')?'Свернуть':'Весь текст'; sw&&sw.updateAutoHeight(200); return; }
+  if(e.target.closest('#copyBtn')){ const b=document.getElementById('copyBtn'), pre=document.querySelector('#pbox pre');
+    const ok=()=>{ b.textContent='Скопировано ✓'; setTimeout(()=>b.textContent='Скопировать',1800); };
+    const fb=()=>{ const r=document.createRange(); r.selectNodeContents(pre); const s=getSelection(); s.removeAllRanges(); s.addRange(r); b.textContent='Выделено — скопируйте'; setTimeout(()=>b.textContent='Скопировать',2600); };
+    try{ navigator.clipboard.writeText(cur.prompt).then(ok,fb); }catch(err){ fb(); } return; }
+  if(e.target.closest('#doneBtn')){ done[cur.id]=!done[cur.id]; save(); e.target.closest('#doneBtn').textContent=done[cur.id]?'Пройден ✓':'Да, получилось!';
+    if(done[cur.id]&&!reduce&&typeof confetti==='function'){ try{ confetti({particleCount:cur.boss?200:90,spread:cur.boss?100:70,origin:{y:.75},colors:['#FFB23E','#5CD3FF','#7BE3A0','#EEF1F8']}); }catch(x){} }
+    setTop(); return; }
+  if(e.target.closest('#nextBtn')){ const list=inW(world), i=list.indexOf(cur); if(i<list.length-1) openLevel(list[i+1].id); else go(world===1?'w2':'home'); return; }
+});
+
+/* boot */
+pips(); setTop();
+try{ const h=location.hash.slice(1); if(h==='world1'||h==='world2') go('w'+h.slice(-1)); else if(L.some(l=>l.id===h)) openLevel(h); }catch(e){}
+})();
+</script>
